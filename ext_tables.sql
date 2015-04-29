@@ -98,7 +98,7 @@ CREATE TABLE tx_agrarapp_zipcodes (
 	PRIMARY KEY (uid),
 	KEY parent (pid),
 	KEY baywaid (baywaid)
-) ENGINE=InnoDB;
+) ENGINE=MyISAM;
 
 
 
@@ -432,13 +432,14 @@ CREATE TABLE tx_agrarapp_marketdata (
 	sorting int(10) DEFAULT '0' NOT NULL,
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
-	price double,
+	price double DEFAULT '',
 	originalid text,
 	datetime int(11) DEFAULT '0' NOT NULL,
 	details text,
 	category int(11) DEFAULT '0' NOT NULL,
 
-	PRIMARY KEY (uid),
+	PRIMARY KEY (originalid(100)),
+	KEY (uid),
 	KEY parent (pid)
 ) ENGINE=InnoDB;
 
@@ -455,7 +456,7 @@ CREATE TABLE tx_agrarapp_marketdata_history (
 	cruser_id int(11) DEFAULT '0' NOT NULL,
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
-	price double,
+	price double DEFAULT '',
 	originalid text,
 	datetime int(11) DEFAULT '0' NOT NULL,
 	details text,
@@ -470,7 +471,7 @@ CREATE TABLE tx_agrarapp_marketdata_history (
 # Table structure for table 'tx_agrarapp_marketdata'
 #
 CREATE TABLE tx_agrarapp_futures (
-  uid int(11) NOT NULL AUTO_INCREMENT,
+  uid int(11) NOT NULL auto_increment,
   pid int(11) NOT NULL DEFAULT '0',
   tstamp int(11) NOT NULL DEFAULT '0',
   crdate int(11) NOT NULL DEFAULT '0',
@@ -479,9 +480,9 @@ CREATE TABLE tx_agrarapp_futures (
   deleted tinyint(4) NOT NULL DEFAULT '0',
   hidden tinyint(4) NOT NULL DEFAULT '0',
   originalid varchar(40) NOT NULL DEFAULT '',
-  originalid_short text NOT NULL DEFAULT '',
+  originalid_short text,
   datetime int(11) NOT NULL DEFAULT '0',
-  details text NOT NULL DEFAULT '',
+  details text,
   PRIMARY KEY (originalid),
   KEY uid (uid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
@@ -490,7 +491,7 @@ CREATE TABLE tx_agrarapp_futures (
 # Table structure for table 'tx_agrarapp_marketdata'
 #
 CREATE TABLE tx_agrarapp_weatherwarnings (
-  uid int(11) NOT NULL AUTO_INCREMENT,
+  uid int(11) NOT NULL auto_increment,
   pid int(11) NOT NULL DEFAULT '0',
   tstamp int(11) NOT NULL DEFAULT '0',
   crdate int(11) NOT NULL DEFAULT '0',
@@ -500,10 +501,10 @@ CREATE TABLE tx_agrarapp_weatherwarnings (
   hidden tinyint(4) NOT NULL DEFAULT '0',
   starttime int(11) DEFAULT '0' NOT NULL,
   endtime int(11) DEFAULT '0' NOT NULL,
-  zipcode int(10) NOT NULL DEFAULT '',
-  warninglevel tinyint(4) NOT NULL DEFAULT '',
+  zipcode int(10) NOT NULL DEFAULT '0',
+  warninglevel tinyint(4) NOT NULL DEFAULT '0',
   warningtype tinyint(4) NOT NULL DEFAULT '0',
-  warningtext text NOT NULL DEFAULT '',
+  warningtext text,
   PRIMARY KEY (uid),
   KEY zipcode (zipcode),
   KEY starttime (starttime),

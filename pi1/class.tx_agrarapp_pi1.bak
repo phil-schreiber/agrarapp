@@ -1,0 +1,2208 @@
+<?php
+/***************************************************************
+ *  Copyright notice
+ *
+ *  (c) 2013 Gregor Gold (denkfabrik groupcom GmbH) <gregor.gold@denkfabrik-group.com>
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
+
+header('Content-Type: text/html; charset=UTF-8');
+
+require_once(PATH_tslib . 'class.tslib_pibase.php');
+error_reporting(E_ALL ^ E_NOTICE);
+/**
+ * Plugin 'BayWa Agrar App' for the 'agrarapp' extension.
+ *
+ * @author	Gregor Gold (denkfabrik groupcom GmbH) <gregor.gold@denkfabrik-group.com>
+ * @package	TYPO3
+ * @subpackage	tx_agrarapp
+ */
+class tx_agrarapp_pi1 extends tslib_pibase {
+	public $prefixId      = 'tx_agrarapp_pi1';		// Same as class name
+	public $scriptRelPath = 'pi1/class.tx_agrarapp_pi1.php';	// Path to this script relative to the extension dir.
+	public $extKey        = 'agrarapp';	// The extension key.
+	public $pi_checkCHash = TRUE;
+
+	/**
+	 * The main method of the Plugin.
+	 *
+	 * @param string $content The Plugin content
+	 * @param array $conf The Plugin configuration
+	 * @return string The content that is displayed on the website
+	 */
+	public function main($content, array $conf) {
+		$this->conf = $conf;
+		$this->pi_setPiVarDefaults();
+		$this->pi_loadLL();
+
+
+		$requestMethod = $_SERVER['REQUEST_METHOD'];
+		$selectedService = trim($_GET['method']);
+
+		$selectedImport = trim($_GET['importDataTrigger']);
+
+		$validModesGet = array(
+			0 => 'newsheader',
+			1 => 'newscontent',
+			2 => 'eventheader',
+			3 => 'eventcontent',
+			4 => 'findcontact',
+			5 => 'findweather',
+			6 => 'locationinfo',
+			7 => 'marketdata',
+			8 => 'goodcourse',
+			9 => 'createmaps',
+			10 => 'weathermaps',
+			11 => 'admindeviceregistration',
+			12 => 'getdashboardservice'
+		);
+
+		$validModesPut = array(
+			0 => 'subscribenews',
+			1 => 'subscribeevents',
+			11 => 'admindeviceregistration'
+		);
+
+		$validImports = array(
+			0 => 'importNewsdata',
+			1 => 'importEventData',
+			2 => 'importCurrentWeather',
+			3 => 'importMarketPrices',
+			4 => 'importZipData',
+			5 => 'importWeatherMaps',
+			6 => 'importWeatherForecast'
+
+		);
+
+		if($requestMethod == 'GET' && in_array($selectedService,$validModesGet)){
+
+			switch($selectedService){
+				case 'newsheader':
+					$resultArray = $this->deliverNewsHeader();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'newscontent':
+					$resultArray = $this->deliverNewsContent();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'eventheader':
+					$resultArray = $this->deliverEventHeader();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'eventcontent':
+					$resultArray = $this->deliverEventContent();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'findcontact':
+					$resultArray = $this->deliverContactContent();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'findweather':
+					$resultArray = $this->deliverWeatherData();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'locationinfo':
+					$resultArray = $this->deliverLocationInfo();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'marketdata':
+					$resultArray = $this->deliverMarketData();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'goodcourse':
+					$resultArray = $this->deliverGoodCourse();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'admindeviceregistration':
+					$resultArray = $this->processRegistrationRequest();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'weathermaps':
+					$resultArray = $this->deliverWeatherMaps();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'getdashboardservice':
+                                        $resultArray = $this->deliverDashboard();
+
+                                        if($_GET['debug'] == 1){
+                                                t3lib_div::debug($resultArray);
+                                        }
+
+
+                                        echo json_encode($resultArray);
+                                        die();
+                                        break;
+				case 'createmaps':
+					$resultArray = $this->createMaps();
+					break;
+				default:
+					$content = '';
+			}
+
+
+		}elseif($requestMethod == 'PUT' && in_array($selectedService,$validModesPut)){
+
+			switch($selectedService){
+				case 'subscribenews':
+					$resultArray = $this->storeSubscribeNews();
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'subscribeevents':
+					$resultArray = $this->storeSubscribeEvents();
+					echo json_encode($resultArray);
+					die();
+					break;
+				case 'admindeviceregistration':
+					$resultArray = $this->processRegistrationRequest();
+
+					if($_GET['debug'] == 1){
+						t3lib_div::debug($resultArray);
+					}
+
+
+					echo json_encode($resultArray);
+					die();
+					break;
+				default:
+					$content = '';
+			}
+
+
+		
+
+		}else{
+			echo "invalid";
+		}
+
+
+	}
+
+
+	function init($conf){
+		$this->conf = $conf; //store configuration
+		$this->pi_initPIflexForm(); // Init FlexForm configuration for plugin
+
+		$this->conf['extPath'] = $GLOBALS['TYPO3_LOADED_EXT']['agrarapp']['siteRelPath'];
+
+		//GENERAL SETTINGS
+
+		// Determine code
+		$code = $this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'code', 'sGENERAL');
+		$this->conf['code'] = $code ? $code : $this->cObj->stdWrap($this->conf['code'], $this->conf['code.']);
+		$this->conf['code'] = strtoupper($this->conf['code']);
+
+	}
+
+	function deliverDashboard(){
+		$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+
+		$params = $getCriteria['params'];
+		
+		$weatherParams = $params['weatherZipCodes'];
+		$contactParams = $params['contactZipCodes'];
+		$eventParams = $params['eventZipCodes'];
+		$newsParams = $params['newsParams'];
+		$marketDataParams = $params['marketDataRange'];
+		$goodParams = $params['marketGoodIds'];
+		
+		$weatherResult = $this->deliverWeatherData($weatherParams);
+		$contactResult = $this->deliverContactContent($contactParams);
+		$eventResult = $this->deliverEventHeader($eventParams);
+		$newsResult = $this->deliverNewsHeader($newsParams);
+		$marketResult = $this->deliverMarketData($marketDataParams);
+		$goodResult = $this->deliverGoodCourse($goodParams);
+		
+		$deliverArray = array(
+			'requestDate' => time(),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'weatherData' => $weatherResult['localizedWeather'],
+			'marketData' => $marketResult['marketCategory'],
+			'newsData' => $newsResult['newsHeaders'],
+			'eventsData' => $eventResult['eventHeaders'],
+			'contactsData' => $contactResult['contacts']
+		);
+		
+		return $deliverArray;
+	
+	}
+
+	function deliverNewsHeader($newsParams = NULL){
+		
+		if($newsParams){
+			$params = $newsParams;
+		}else{
+			$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+			$params = $getCriteria['params'];
+		}
+
+		$NewsData = array();
+
+		foreach($params AS $key => $value){
+
+			$cultureID = intval($value['categoryId']);
+			$zipcode = $this->cleanZipCode($value['zipCode']);
+
+
+			if($zipcode && $cultureID){
+
+
+				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+					'tx_agrarapp_regions.title,tx_agrarapp_regions.uid',
+					'tx_agrarapp_zipcodes
+						LEFT JOIN tx_agrarapp_regions_zipcodes_mm ON (tx_agrarapp_regions_zipcodes_mm.uid_foreign = tx_agrarapp_zipcodes.zip)
+						LEFT JOIN tx_agrarapp_regions ON (tx_agrarapp_regions.uid = tx_agrarapp_regions_zipcodes_mm.uid_local)',
+					'tx_agrarapp_zipcodes.zip = '.$zipcode
+				);
+
+			}
+			
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($res)){
+
+				$regionResult = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+				
+				$newsEntries = $this->getNewsHeaderData($regionResult['uid'],$regionResult['title'],$cultureID);
+			 	if(is_array($newsEntries)){	
+					foreach($newsEntries AS $key1 => $value1){
+						if(!isset($newsData[$key1])){
+							$newsData[$key1] = $value1;
+						}
+					}
+				}
+				
+			}
+
+			$newsAllRegions = $this->getNewsHeaderData(false,false,$cultureID);
+
+			if(is_array($newsAllRegions)){
+				
+				foreach($newsAllRegions AS $key2 => $value2){
+					if(!isset($newsData[$key2])){
+						$newsData[$key2] = $value2;
+					}
+				}
+				
+			}
+		}
+		$NewsData = array_merge($newsData);
+		
+		if(count($NewsData) == 0){
+			$NewsData = null;
+		}
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true)*10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'newsHeaders' => $NewsData
+		);
+
+		return $resultArray;
+	}
+
+	function getNewsHeaderData($regionID,$regionName,$cultureID){
+
+		if($regionID){
+			
+			$getNewsQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'tx_agrarapp_infos.uid,tx_agrarapp_infos.title,tx_agrarapp_infos.abstract,tx_agrarapp_infos.cultivar,tx_agrarapp_infos.starttime,tx_agrarapp_infos.endtime',
+				'tx_agrarapp_infos_region_mm
+				INNER JOIN tx_agrarapp_infos_cultivar_mm ON tx_agrarapp_infos_cultivar_mm.uid_local = tx_agrarapp_infos_region_mm.uid_local
+				INNER JOIN tx_agrarapp_infos ON (tx_agrarapp_infos.uid = tx_agrarapp_infos_cultivar_mm.uid_local)',
+				'tx_agrarapp_infos_cultivar_mm.uid_foreign = '. intval($cultureID) .' AND tx_agrarapp_infos_region_mm.uid_foreign = '. $regionID . $this->cObj->enableFields('tx_agrarapp_infos'),
+				'tx_agrarapp_infos.uid'
+			);	
+
+			$zipCodesQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'uid_foreign',
+				'tx_agrarapp_regions_zipcodes_mm',
+				'uid_local = '. $regionID
+			);
+			$zipArray = array();			
+			while($regionRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($zipCodesQuery)) {
+				
+				$zipArray[] = str_pad($regionRow['uid_foreign'], 5, '0', STR_PAD_LEFT);
+			}
+
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($getNewsQuery)){
+	
+				$result = array();
+
+				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getNewsQuery)){
+
+					$result[$row['uid']] = array(
+						'newsID' => $row['uid'],
+						'title' => $row['title'],
+						'teaser' => $row['abstract'],
+						'regionIds' => array(
+							0 => $regionID
+						),
+						'regionNames' => array(
+							$regionName
+						),
+						'categoryId' => $row['cultivar'],
+						'validFromDate' => $row['starttime'] * 1000 ,
+						'validToDate' => $row['endtime'] * 1000,
+						'zipCodes' => count($zipArray) > 0 ? $zipArray : null
+					);
+				}
+				
+
+			}else{
+				$result = FALSE;
+			}
+		}else{
+
+			$getNewsQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'tx_agrarapp_infos.uid,tx_agrarapp_infos.title,tx_agrarapp_infos.abstract,tx_agrarapp_infos.cultivar,tx_agrarapp_infos.starttime,tx_agrarapp_infos.endtime',
+				'tx_agrarapp_infos',
+				'tx_agrarapp_infos.cultivar = '. intval($cultureID) .' AND tx_agrarapp_infos.region = 0'. $this->cObj->enableFields('tx_agrarapp_infos')
+			);
+
+
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($getNewsQuery)){
+
+				$result = array();
+
+				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getNewsQuery)){
+					
+					$result[$row['uid']] = array(
+						'newsID' => $row['uid'],
+						'title' => $row['title'],
+						'teaser' => $row['abstract'],
+						'regionIds' => array(
+							0 => $regionID
+						),
+						'regionNames' => array(
+							0 => $regionName
+						),
+						'categoryId' => $row['cultivar'],
+						'validFromDate' => $row['starttime'] * 1000,
+						'validToDate' => $row['endtime'] * 1000,
+						'zipCodes' => count($zipArray) > 0 ? $zipArray : null
+					);
+				}
+
+			}else{
+				$result = FALSE;
+			}
+		}
+
+		return $result;
+
+	}
+
+	function deliverNewsContent(){
+
+		$newsID = intval(trim($_GET['id']));
+
+		$getNewsQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			'uid,title,abstract,bodytext,image,bodytext2,image2,bodytext3,image3,starttime,endtime',
+			'tx_agrarapp_infos',
+			'uid = '. $newsID
+		);
+
+		$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getNewsQuery);
+
+		if(is_array($row)){
+			$NewsData = array(
+				'newsID' => $row['uid'],
+				'name' => $row['title'],
+				'messageTexts' => array(
+					0 => $row['bodytext'] ? $row['bodytext'] : null,
+					1 => $row['bodytext2'] ? $row['bodytext2'] : null,
+					2 => $row['bodytext3'] ? $row['bodytext3'] : null
+				),
+				'pictureRefs' => array(
+					0 => $row['image'] ? str_replace('/var/www/cms/','',$row['image']) : null,
+					1 => $row['image2'] ? str_replace('/var/www/cms/','',$row['image2']) : null,
+					2 => $row['image3'] ? str_replace('/var/www/cms/','',$row['image3']) : null,
+				),
+				'validFromDate' => $row['starttime'] * 1000,
+				'validToDate' => $row['endtime'] * 1000
+			);
+		}else{
+			$NewsData = null;
+		}
+
+
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true)*10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'newsContent' => $NewsData
+		);
+
+		return $resultArray;
+	}
+
+
+	function deliverEventHeader($eventParams = NULL){
+		
+		if($eventParams){
+			$params = $eventParams;
+		}else{
+			$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+			$params = $getCriteria['params'];
+		}
+
+		$eventData = array();
+
+		foreach($params AS $key => $value){
+			$eventData[] = $this->getEventHeaderData($value);
+		
+
+			$eventData[] = $this->getEventHeaderData(false);
+		}
+		$eventDataFinal = array();
+		foreach($eventData AS $key => $value){
+			foreach($value AS $key1 => $value1){
+				if(!array_key_exists($value1['eventID'],$eventDataFinal)){
+					$eventDataFinal[$value1['eventID']] = $value1;
+				}
+			}
+		}
+		
+		$eventDataFinal = array_merge($eventDataFinal);
+
+		if(count($eventDataFinal) == 0){
+			$eventDataFinal = null;
+		}
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'eventHeaders' => $eventDataFinal
+		);
+
+		return $resultArray;
+	}
+	
+
+	function getEventHeaderData($zipCode){
+
+		if($zipCode){
+			$zipCode = $this->cleanZipCode($zipCode);
+
+			$regionQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'uid_local',
+				'tx_agrarapp_regions_zipcodes_mm',
+				'uid_foreign = '. $zipCode
+			);
+
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($regionQuery) > 0){
+				$regionRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($regionQuery);
+
+				$zipCodesQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+					'uid_foreign',
+					'tx_agrarapp_regions_zipcodes_mm',
+					'uid_local = '. intval($regionRow['uid_local'])
+				);
+
+				while($zipcodeRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($zipCodesQuery)) {
+					$zipArray[] = str_pad($zipcodeRow['uid_foreign'], 5, '0', STR_PAD_LEFT);
+				}
+			}
+
+			$selectClause = 'uid,title,abstract,zip,street,city,address_addition,datetime_start,datetime_end,starttime,endtime';
+
+			$getEventsQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				$selectClause,
+				'tx_agrarapp_regions_zipcodes_mm
+				LEFT JOIN tx_agrarapp_events_regions_mm ON (tx_agrarapp_events_regions_mm.uid_foreign = tx_agrarapp_regions_zipcodes_mm.uid_local)
+				LEFT JOIN tx_agrarapp_events ON (tx_agrarapp_events.uid = tx_agrarapp_events_regions_mm.uid_local)',
+				'tx_agrarapp_regions_zipcodes_mm.uid_foreign = '. $zipCode . $this->cObj->enableFields('tx_agrarapp_events')
+			);
+
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($getEventsQuery)){
+
+				$result = array();
+
+				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getEventsQuery)){
+
+					$result[] = array(
+						'eventID' => $row['uid'],
+						'title' => $row['title'],
+						'description' => $row['abstract'],
+						'street' => $row['street'],
+						'city' => $row['city'],
+						'zipcode' => $row['zip'],
+						'additionalAddressData' => $row['address_addition'],
+						'eventStartDate' => $row['datetime_start'] * 1000,
+						'eventEndDate' => $row['datetime_end'] * 1000,
+						'validFromDate' => $row['starttime'] * 1000,
+						'validToDate' => $row['endtime'] * 1000,
+						'zipCodes' => count($zipArray > 0) ? $zipArray : null
+					);
+
+
+				}
+
+			}else{
+				$result = FALSE;
+			}
+		}else{
+
+			$selectClause = 'uid,title,abstract,zip,street,city,address_addition,datetime_start,datetime_end,starttime,endtime';
+
+			$getEventsQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				$selectClause,
+				'tx_agrarapp_events',
+				'regions = 0'. $this->cObj->enableFields('tx_agrarapp_events')
+			);
+
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($getEventsQuery)){
+
+				$result = array();
+
+				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getEventsQuery)){
+
+					$result[] = array(
+						'eventID' => $row['uid'],
+						'title' => $row['title'],
+						'description' => $row['abstract'],
+						'street' => $row['street'],
+						'city' => $row['city'],
+						'zipcode' => $row['zip'],
+						'additionalAddressData' => $row['address_addition'],
+						'eventStartDate' => $row['datetime_start'] * 1000,
+						'eventEndDate' => $row['datetime_end'] * 1000,
+						'validFromDate' => $row['starttime'] * 1000,
+						'validToDate' => $row['endtime'] * 1000,
+						'zipCodes' => count($zipArray > 0) ? $zipArray : null
+					);
+
+
+				}
+
+			}else{
+				$result = FALSE;
+			}
+
+
+
+		}
+
+		return $result;
+
+
+
+
+	}
+
+	function deliverEventContent(){
+
+		$eventID = intval(trim($_GET['id']));
+
+		$getEventQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			'uid,title,abstract,zip,street,city,address_addition,datetime_start,datetime_end,starttime,endtime',
+			'tx_agrarapp_events',
+			'uid = '. intval($eventID)
+		);
+
+		$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getEventQuery);
+
+		if(is_array($row)){
+
+			$regionQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'tx_agrarapp_regions.uid,tx_agrarapp_regions.title',
+				'tx_agrarapp_events_regions_mm
+				LEFT JOIN tx_agrarapp_regions ON (tx_agrarapp_regions.uid = tx_agrarapp_events_regions_mm.uid_foreign)',
+				'tx_agrarapp_events_regions_mm.uid_local = '. $eventID
+			);
+
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($regionQuery) > 0){
+				$regionNames = array();
+				$regionIds = array();
+				while($regionRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($regionQuery)){
+					if($regionRow['title'] && $regionRow['uid']){
+						$regionNames[] = $regionRow['title'];
+						$regionIds[] = $regionRow['uid'];
+					}
+				}
+
+			}
+
+			$eventData = array(
+				'eventID' => $row['uid'],
+				'title' => $row['title'],
+				'messageTexts' => array(
+					0 => $row['abstract'] ? $row['abstract'] : null
+				),
+				'pictureRefs' => array(),
+				'street' => $row['street'],
+				'city' => $row['city'],
+				'zipcode' => $row['zip'],
+				'additionalAddressData' => $row['address_addition'],
+				'eventStartDate' => $row['datetime_start'] * 1000,
+				'eventEndDate' => $row['datetime_end'] * 1000,
+				'validFromDate' => $row['starttime'] * 1000,
+				'validToDate' => $row['endtime'] * 1000,
+				'regionNames' => $regionNames,
+				'regionIds' => $regionIds
+			);
+		}else{
+			$eventData = null;
+		}
+
+
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'eventContent' => $eventData
+		);
+
+		return $resultArray;
+
+	}
+
+	function deliverContactContent($contactParams = NULL){
+		
+		if($contactParams){
+			$params = $contactParams;
+		}else{
+			$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+			$params = $getCriteria['params'];
+		}		
+
+		$contactData = array();
+
+		foreach($params AS $key => $value){
+
+			$contactData[] = $this->getContactData($value);
+
+		}
+		$contactDataFinal = array();
+		foreach($contactData AS $key => $value){
+
+			foreach($value AS $key1 => $value1){
+				if(!array_key_exists($value1['consultantId'],$contactDataFinal)){
+					$contactDataFinal[$value1['consultantId']] = $value1;
+				}
+			}
+		}
+
+		$contactDataFinal = array_merge($contactDataFinal);
+
+		if(count($contactDataFinal) == 0){
+			$contactDataFinal = null;
+		}
+
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'contacts' => $contactDataFinal
+		);
+
+		return $resultArray;
+
+
+	}
+
+	function getContactData($zipCode){
+
+		$zipCode = $this->cleanZipCode($zipCode);
+
+
+		$getContactsQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			'tx_agrarapp_profiles.uid,tx_agrarapp_profiles.name,tx_agrarapp_profiles.phone,tx_agrarapp_profiles.mobile,tx_agrarapp_profiles.email,tx_agrarapp_profiles.picture,tx_agrarapp_profiles.zip,tx_agrarapp_regions.title AS region_title, tx_agrarapp_regions.uid AS region_uid,tx_agrarapp_locations.location AS l_title,tx_agrarapp_locations.division AS l_division,tx_agrarapp_locations.street AS l_street, tx_agrarapp_locations.zip AS l_zip,tx_agrarapp_locations.phone AS l_phone,tx_agrarapp_locations.fax AS l_fax,tx_agrarapp_locations.city AS l_city,tx_agrarapp_locations.email AS l_email',
+			'tx_agrarapp_profiles_zip_mm
+			LEFT JOIN tx_agrarapp_profiles ON (tx_agrarapp_profiles.uid = tx_agrarapp_profiles_zip_mm.uid_local)
+			LEFT JOIN tx_agrarapp_regions_zipcodes_mm ON (tx_agrarapp_regions_zipcodes_mm.uid_foreign = '. $zipCode .')
+			LEFT JOIN tx_agrarapp_regions ON (tx_agrarapp_regions.uid = tx_agrarapp_regions_zipcodes_mm.uid_local)
+			LEFT JOIN tx_agrarapp_locations_zipcodes_mm ON (tx_agrarapp_locations_zipcodes_mm.uid_foreign = '. $zipCode .')
+			LEFT JOIN tx_agrarapp_locations ON (tx_agrarapp_locations.uid = tx_agrarapp_locations_zipcodes_mm.uid_local)',
+			'tx_agrarapp_profiles_zip_mm.uid_foreign = '. $zipCode . $this->cObj->enableFields('tx_agrarapp_profiles')
+		);
+
+		if($GLOBALS['TYPO3_DB']->sql_num_rows($getContactsQuery)){
+
+			
+			$result = array();
+
+			while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getContactsQuery)){
+				
+				$result[] = array(
+					'name' => $row['name'],
+					'phone' => $row['phone'],
+					'mobilePhone' => $row['mobile'],
+					'email' => $row['email'],
+					'pictureRef' => str_replace('/var/www/cms/','',$row['picture']),
+					'consultantId' => $row['uid'],
+					'zipCode' => $row['zip'],
+					'regionId' => $row['region_uid'],
+					'regionName' => $row['region_title'],
+					'plants' => array(
+						0 => array(
+							'name' => $row['l_title'],
+							'email' => $row['l_email'],
+							'fax' => $row['l_fax'],
+							'phone' => $row['l_phone'],
+							'city' => $row['l_city'],
+							'zipcode' => $row['l_zip'],
+							'street' => $row['l_street'],
+							'zipcode' => $row['l_zip'],
+							'division' => $row['l_division']
+						)
+					)
+				);
+			}
+
+
+		}else{
+			$result = FALSE;
+		}
+
+		return $result;
+
+
+
+
+	}
+
+	function deliverWeatherDataOld(){
+
+		$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+
+		$params = $getCriteria['params'];
+
+		$weatherData = array();
+
+		foreach($params AS $key => $value){
+			$weatherData[] = $this->getWeatherData($value);
+		}
+
+		if(count($weatherData) == 0){
+			$weatherData = null;
+		}
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'localizedWeather' => $weatherData
+		);
+
+		return $resultArray;
+	}
+
+	function deliverWeatherData($weatherParams = NULL){
+		
+		if($weatherParams){
+			$params = $weatherParams;
+		}else{	
+			$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+			$params = $getCriteria['params'];
+		}
+
+		$weatherData = array();
+
+		foreach($params AS $key => $value){
+			$weatherData[] = $this->getWeatherData($value);
+		}
+
+		if(count($weatherData) == 0){
+			$weatherData = null;
+		}
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'localizedWeather' => $weatherData
+		);
+
+		return $resultArray;
+	}
+
+	function getWeatherDataOld($zipCode){
+
+		$zipCode = $this->cleanZipCode($zipCode);
+
+		$currentWeatherStationsFile = 'fileadmin/files/weatherlookup/'. str_pad($zipCode, 5, '0', STR_PAD_LEFT) .'.txt';
+
+		$currentWeatherStations = json_decode(file_get_contents($currentWeatherStationsFile),1);
+
+		foreach($currentWeatherStations AS $key => $value){
+
+			$currentWeatherFile = 'fileadmin/files/currentWeather/'. trim($value) .'.txt';
+
+			if(is_file($currentWeatherFile)){
+				$currentWeatherArray = json_decode(file_get_contents($currentWeatherFile),1);
+				break;
+			}
+		}
+
+		$forecastWeatherFile = 'fileadmin/files/forecast/'. str_pad($zipCode, 5, '0', STR_PAD_LEFT) .'.txt';
+
+		$forecastWeatherArray = json_decode(file_get_contents($forecastWeatherFile),1);
+
+
+
+		foreach($forecastWeatherArray['dates'] AS $key => $value){
+
+			foreach($value['periods'] AS $key1 => $value1){
+
+				$forecastWeatherArray['dates'][$key]['periods'][$key1]['conditionDayId'] = $value1['conditionId'];
+				$forecastWeatherArray['dates'][$key]['periods'][$key1]['conditionNightId'] = $value1['conditionId'];
+				unset($forecastWeatherArray['dates'][$key]['periods'][$key1]['conditionId']);
+				unset($forecastWeatherArray['dates'][$key]['periods'][$key1]['condition']);
+
+			}
+
+		}
+
+
+
+
+
+		$totalWeatherArray = $forecastWeatherArray;
+
+
+
+
+		$conditionValues = array(
+			'day' => array(
+				1 => 'sonnig',
+				2 => 'heiter',
+				3 => 'wolkig',
+				4 => 'stark bewölkt',
+				5 => 'bedeckt',
+				6 => 'Regenschauer',
+				7 => 'Regen',
+				8 => 'Gewitter',
+				9 => 'Schneeschauer',
+				10 => 'Schneefall',
+				11 => 'Schneeregen',
+				12 => 'Nebel',
+				13 => 'in Wolken',
+				14 => 'Sprühregen',
+				99 => 'keine Daten'
+			),
+			'night' => array(
+				1 => 'klar',
+				2 => 'heiter',
+				3 => 'wolkig',
+				4 => 'stark bewölkt',
+				5 => 'bedeckt',
+				6 => 'Regenschauer',
+				7 => 'Regen',
+				8 => 'Gewitter',
+				9 => 'Schneeschauer',
+				10 => 'Schneefall',
+				11 => 'Schneeregen',
+				12 => 'Nebel',
+				13 => 'in Wolken',
+				14 => 'Sprühregen',
+				99 => 'keine Daten'
+			)
+		);
+
+		$windDirections = array(
+			0 => array(
+				'long' => 'kein Wind',
+				'short' => '-'
+			),
+			1 => array(
+				'long' => 'nordnordost',
+				'short' => 'N-N-O'
+			),
+			2 => array(
+				'long' => 'ostnordost',
+				'short' => 'O-N-O'
+			),
+			3 => array(
+				'long' => 'ostsüdost',
+				'short' => 'O-S-O'
+			),
+			4 => array(
+				'long' => 'südost',
+				'short' => 'S-S-O'
+			),
+			5 => array(
+				'long' => 'südwest',
+				'short' => 'S-S-W'
+			),
+			6 => array(
+				'long' => 'westsüdwest',
+				'short' => 'W-S-W'
+			),
+			7 => array(
+				'long' => 'westnordwest',
+				'short' => 'W-N-W'
+			),
+			8 => array(
+				'long' => 'nordnordwest',
+				'short' => 'N-N-W'
+			),
+			27 => array(
+				'long' => 'süd',
+				'short' => 'S'
+			),
+			28 => array(
+				'long' => 'südwest',
+				'short' => 'SW'
+			),
+			29 => array(
+				'long' => 'west',
+				'short' => 'W'
+			),
+			30 => array(
+				'long' => 'nordwest',
+				'short' => 'NW'
+			),
+			31 => array(
+				'long' => 'nord',
+				'short' => 'N'
+			),
+			32 => array(
+				'long' => 'nordost',
+				'short' => 'NO'
+			),
+			33 => array(
+				'long' => 'ost',
+				'short' => 'O'
+			),
+			34 => array(
+				'long' => 'südost',
+				'short' => 'SO'
+			),
+			99 => array(
+				'long' => 'Umlauf',
+				'short' => '+'
+			)
+		);
+
+
+		$currentHour = date('h',time());
+		if($currentHour < 8  || $currentHour > 20){
+			$conditionsArray = $conditionValues['night'];
+		}else{
+			$conditionsArray = $conditionValues['day'];
+		}
+
+
+		$totalWeatherArray['temperature'] = $currentWeatherArray['t'];
+		$totalWeatherArray['relativeHumidity'] = $currentWeatherArray['rf'];
+		$totalWeatherArray['conditionDayId'] = $currentWeatherArray['wz'];
+		$totalWeatherArray['conditionNightId'] = $currentWeatherArray['wz'];
+		$totalWeatherArray['windSpeed'] = $currentWeatherArray['wg'];
+		$totalWeatherArray['windDirectionId'] = $currentWeatherArray['wr'];
+		$totalWeatherArray['windDirectionLong'] = $windDirections[$currentWeatherArray['wr']]['long'];
+		$totalWeatherArray['windDirectionShort'] = $windDirections[$currentWeatherArray['wr']]['short'];
+		$totalWeatherArray['dewPoint'] = $currentWeatherArray['tp'];
+		$totalWeatherArray['sightDist'] = $currentWeatherArray['sw'];
+
+
+		$getRegionQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			'title,baywaid',
+			'tx_agrarapp_regions_zipcodes_mm
+			LEFT JOIN tx_agrarapp_regions ON (tx_agrarapp_regions.uid = tx_agrarapp_regions_zipcodes_mm.uid_local)',
+			'uid_foreign = '. $totalWeatherArray['zipCode']
+		);
+
+		$regionResult = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getRegionQuery);
+
+		$totalWeatherArray['regionId'] = $regionResult['baywaid'];
+		$totalWeatherArray['regionName'] = $regionResult['title'];
+
+
+
+
+		return $totalWeatherArray;
+
+
+
+	}
+
+	function getWeatherData($zipCode){
+
+		$zipCode = $this->cleanZipCode($zipCode);
+
+		$currentWeatherStationsFile = 'fileadmin/files/weatherlookup/'. str_pad($zipCode, 5, '0', STR_PAD_LEFT) .'.txt';
+
+		$currentWeatherStations = json_decode(file_get_contents($currentWeatherStationsFile),1);
+
+		$stationsData = json_decode(json_encode((array) simplexml_load_file ('fileadmin/files/import_weather/liste_messstationen.xml')), 1);
+
+		foreach($stationsData['station'] AS $stationKey => $stationValue){
+
+			$stationId[$stationValue['@attributes']['id']] = $stationValue['name'];
+
+		}
+
+		foreach($currentWeatherStations AS $key => $value){
+			$stationsArray['station'. ($key + 1)] = $stationId[$value];
+		}
+
+
+
+		foreach($currentWeatherStations AS $key => $value){
+
+			$currentWeatherFile = 'fileadmin/files/currentWeather/'. trim($value) .'.txt';
+
+			if(is_file($currentWeatherFile)){
+				$currentWeatherArray = json_decode(file_get_contents($currentWeatherFile),1);
+				break;
+			}
+		}
+
+		$forecastWeatherFile = 'fileadmin/files/forecast/'. str_pad($zipCode, 5, '0', STR_PAD_LEFT) .'.txt';
+
+		$forecastWeatherArray = json_decode(file_get_contents($forecastWeatherFile),1);
+
+		foreach($forecastWeatherArray['dates'] AS $key => $value){
+
+
+			$forecastWeatherArray['dates'][$key]['chanceOfRain'] = 0;
+			$forecastWeatherArray['dates'][$key]['windSpeed'] = 0;
+			
+			foreach($value['periods'] AS $key1 => $value1){
+
+				$currentWindSpeed = $forecastWeatherArray['dates'][$key]['windSpeed'];
+				$currentChanceOfRain = $forecastWeatherArray['dates'][$key]['chanceOfRain'];
+
+				$forecastWeatherArray['dates'][$key]['windSpeed'] = $value1['meanWindSpeed'] > $currentWindSpeed ? $value1['meanWindSpeed'] : $currentWindSpeed;
+				$forecastWeatherArray['dates'][$key]['chanceOfRain'] = $value1['chanceOfRain'] > $currentChanceOfRain ? $value1['chanceOfRain'] : $currentChanceOfRain;
+
+			}
+
+		}
+
+		$totalWeatherArray = $forecastWeatherArray;
+
+
+		$conditionValues = array(
+			'day' => array(
+				1 => 'sonnig',
+				2 => 'heiter',
+				3 => 'wolkig',
+				4 => 'stark bewölkt',
+				5 => 'bedeckt',
+				6 => 'Regenschauer',
+				7 => 'Regen',
+				8 => 'Gewitter',
+				9 => 'Schneeschauer',
+				10 => 'Schneefall',
+				11 => 'Schneeregen',
+				12 => 'Nebel',
+				13 => 'in Wolken',
+				14 => 'Sprühregen',
+				99 => 'keine Daten'
+			),
+			'night' => array(
+				1 => 'klar',
+				2 => 'heiter',
+				3 => 'wolkig',
+				4 => 'stark bewölkt',
+				5 => 'bedeckt',
+				6 => 'Regenschauer',
+				7 => 'Regen',
+				8 => 'Gewitter',
+				9 => 'Schneeschauer',
+				10 => 'Schneefall',
+				11 => 'Schneeregen',
+				12 => 'Nebel',
+				13 => 'in Wolken',
+				14 => 'Sprühregen',
+				99 => 'keine Daten'
+			)
+		);
+
+		$windDirections = array(
+			0 => array(
+				'long' => 'kein Wind',
+				'short' => '-'
+			),
+			1 => array(
+				'long' => 'nordnordost',
+				'short' => 'N-N-O'
+			),
+			2 => array(
+				'long' => 'ostnordost',
+				'short' => 'O-N-O'
+			),
+			3 => array(
+				'long' => 'ostsüdost',
+				'short' => 'O-S-O'
+			),
+			4 => array(
+				'long' => 'südost',
+				'short' => 'S-S-O'
+			),
+			5 => array(
+				'long' => 'südwest',
+				'short' => 'S-S-W'
+			),
+			6 => array(
+				'long' => 'westsüdwest',
+				'short' => 'W-S-W'
+			),
+			7 => array(
+				'long' => 'westnordwest',
+				'short' => 'W-N-W'
+			),
+			8 => array(
+				'long' => 'nordnordwest',
+				'short' => 'N-N-W'
+			),
+			27 => array(
+				'long' => 'süd',
+				'short' => 'S'
+			),
+			28 => array(
+				'long' => 'südwest',
+				'short' => 'SW'
+			),
+			29 => array(
+				'long' => 'west',
+				'short' => 'W'
+			),
+			30 => array(
+				'long' => 'nordwest',
+				'short' => 'NW'
+			),
+			31 => array(
+				'long' => 'nord',
+				'short' => 'N'
+			),
+			32 => array(
+				'long' => 'nordost',
+				'short' => 'NO'
+			),
+			33 => array(
+				'long' => 'ost',
+				'short' => 'O'
+			),
+			34 => array(
+				'long' => 'südost',
+				'short' => 'SO'
+			),
+			99 => array(
+				'long' => 'Umlauf',
+				'short' => '+'
+			)
+		);
+
+
+		$currentHour = date('h',time());
+		if($currentHour < 8  || $currentHour > 20){
+			$conditionsArray = $conditionValues['night'];
+		}else{
+			$conditionsArray = $conditionValues['day'];
+		}
+
+
+		$totalWeatherArray['temperature'] = $currentWeatherArray['t'];
+		$totalWeatherArray['relativeHumidity'] = $currentWeatherArray['rf'];
+		$totalWeatherArray['conditionDayId'] = $currentWeatherArray['wz'];
+		$totalWeatherArray['conditionNightId'] = $currentWeatherArray['wz'];
+		$totalWeatherArray['windSpeed'] = $currentWeatherArray['wg'];
+		$totalWeatherArray['windDirectionId'] = $currentWeatherArray['wr'];
+		$totalWeatherArray['windDirectionLong'] = $windDirections[$currentWeatherArray['wr']]['long'];
+		$totalWeatherArray['windDirectionShort'] = $windDirections[$currentWeatherArray['wr']]['short'];
+		$totalWeatherArray['dewPoint'] = $currentWeatherArray['tp'];
+		$totalWeatherArray['sightDist'] = $currentWeatherArray['sw'];
+		$totalWeatherArray['chanceOfRain'] = $totalWeatherArray['dates'][0]['chanceOfRain'];
+
+
+		$getRegionQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+		'title,baywaid',
+		'tx_agrarapp_regions_zipcodes_mm
+		LEFT JOIN tx_agrarapp_regions ON (tx_agrarapp_regions.uid = tx_agrarapp_regions_zipcodes_mm.uid_local)',
+		'uid_foreign = '. $totalWeatherArray['zipCode']
+		);
+
+		$regionResult = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getRegionQuery);
+
+		$totalWeatherArray['regionId'] = $regionResult['baywaid'];
+		$totalWeatherArray['regionName'] = $regionResult['title'];
+		$totalWeatherArray['datetime'] = $totalWeatherArray['dates'][0]['date'] ;
+
+		$totalWeatherArray = array_merge($totalWeatherArray,$stationsArray);
+
+
+
+		return $totalWeatherArray;
+
+
+
+	}
+
+	function deliverLocationInfo(){
+
+		$getCriteria = json_decode(stripslashes(utf8_encode($_GET['criteria'])),1);
+
+
+		$params = $getCriteria['params'];
+
+		if($params['lat'] && $params['long']){
+			$lat = round(floatval($params['lat']), 3);
+			$lng = round(floatval($params['long']),2);
+
+			$locationSql="SELECT city,area1,zip,region1,
+			    SQRT(POW((69.1 * (tx_agrarapp_zipcodes.latitude - $lat)) , 2 ) +
+			    POW((53 * (tx_agrarapp_zipcodes.longitude - $lng)), 2)) AS distance
+			FROM tx_agrarapp_zipcodes
+			ORDER BY distance ASC
+			LIMIT 50
+			";
+
+			$locationQuery = $GLOBALS['TYPO3_DB']->sql_query($locationSql);
+
+			while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($locationQuery)){
+				$locationData[] = array(
+					'city' => implode(' - ',array($row['city'],$row['area1'])),
+					'zipCode' => strlen($row['zip']) == 5 ? $row['zip'] : str_pad($row['zip'], 5, '0', STR_PAD_LEFT),
+					'province' => $row['region1']
+				);
+			}
+		}
+
+		if(!$params['lat'] && $params['zipCode']){
+
+			$zipCode = $this->cleanZipCode($params['zipCode']);
+
+
+			if(substr($params['zipCode'], 0, 1) == '0'){
+				$leadingZero = 1;
+			}else{
+				$leadingZero = 0;
+			}
+
+
+			$locationData = $this->findLocationInfoByZip($zipCode,$leadingZero,1);
+
+		}
+
+		if(!$params['lat'] && !$params['zipCode'] && $params['city']){
+			
+			$cityName = $this->cleanString($params['city']);
+
+			$searchString = mysql_real_escape_string(trim($cityName));
+
+			$locationSql="SELECT city,area1,zip,region1 FROM tx_agrarapp_zipcodes
+			WHERE MATCH (city,area1) AGAINST ('$searchString*' IN BOOLEAN MODE) ORDER BY city,area1";
+
+			$locationQuery = $GLOBALS['TYPO3_DB']->sql_query($locationSql);
+
+			while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($locationQuery)){
+
+				$locationData[] = array(
+					'city' => $row['area1'] != '' ? implode(' - ',array($row['city'],$row['area1'])) : $row['city'],
+					'zipCode' => strlen($row['zip']) == 5 ? $row['zip'] : str_pad($row['zip'], 5, '0', STR_PAD_LEFT),
+					'province' => $row['region1']
+				);
+			}
+
+		}
+
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'locations' => $locationData
+		);
+
+		return $resultArray;
+
+
+	}
+
+	function findLocationInfoByZip($zipCode,$leadingZero = 0,$firstRun = 0){
+
+		$zipCode = $this->cleanZipCode($zipCode);
+
+		if($zipCode < 9999 && $firstRun && $leadingZero){
+			$this->findLocationShortZip = 1;
+		}
+
+		if($this->findLocationShortZip){
+			$selectaddition = ' AND zip < 9999';
+		}
+
+
+
+
+		$locationQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			'city,area1,zip,region1',
+			'tx_agrarapp_zipcodes',
+			'zip LIKE \''. $zipCode .'%\'' . $selectaddition
+		);
+
+
+		if($GLOBALS['TYPO3_DB']->sql_num_rows($locationQuery)){
+
+			while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($locationQuery)){
+				$locationData[] = array(
+					'city' => implode(' - ',array($row['city'],$row['area1'])),
+					'zipCode' => $this->findLocationShortZip != 1 ? $row['zip'] : str_pad($row['zip'], 5, '0', STR_PAD_LEFT),
+					'province' => $row['region1']
+				);
+			}
+			return $locationData;
+
+		}else{
+			return $this->findLocationInfoByZip(substr($zipCode, 0, -1));
+		}
+
+	}
+
+	function deliverMarketData($marketParams){
+		
+		if($marketParams){
+			$params = $marketParams;
+		}else{
+			$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+			$params = $getCriteria['params'];
+		}
+	
+		$whereClause = '';
+
+		if(is_array($params['goodIds']) && count($params['goodIds']) > 0){
+
+			foreach($params['goodIds'] AS $key => $value){
+				$cleanParamsArray[] = intval($value);
+			}
+
+			$whereClause = ' AND tx_agrarapp_marketdata.uid IN ('. implode(',',$cleanParamsArray) .')';
+
+		}
+
+		$getMarketData = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			'tx_agrarapp_marketdata.uid,price,category,details,originalid,datetime,tx_agrarapp_marketdata_categories.title',
+			'tx_agrarapp_marketdata
+			LEFT JOIN tx_agrarapp_marketdata_categories ON (tx_agrarapp_marketdata_categories.uid = tx_agrarapp_marketdata.category)',
+			'1=1 '. $whereClause . $this->cObj->enableFields('tx_agrarapp_marketdata')
+		);
+
+		$dataArray = array();
+		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getMarketData)){
+
+			if(!array_key_exists($row['category'],$dataArray)){
+
+				$dataArray[$row['category']] = array(
+					'id' => $row['category'],
+					'name' => $row['title'],
+					'marketCategory' => null,
+					'goods' => array()
+				);
+			}
+
+			$dataDetails = json_decode($row['details'],1);
+
+			$dataArray[$row['category']]['goods'][] = array(
+					'goodId' => $row['uid'],
+					'originalId' => $row['originalid'],
+					'name' => $dataDetails['name'],
+					'description' => $dataDetails['description'],
+					'isin' => $dataDetails['isin'],
+					'currency' => $dataDetails['currency'],
+					'unit' => '',
+					'datetime' => $row['datetime'] * 1000,
+					'openPrice' => $dataDetails['openprice'],
+					'highPrice' => $dataDetails['highprice'],
+					'lowPrice' => $dataDetails['lowprice'],
+					'currentPrice' => $dataDetails['currentprice'],
+					'changeNet' => $dataDetails['changeNet'],
+					'changePercent' => $dataDetails['changePercent'],
+					'settlement' => $dataDetails['settlement'],
+					'previousClosePrice' => $dataDetails['previousClosePrice'],
+					'previousCloseDate' => $dataDetails['previousCloseDate'] * 1000,
+					'dataGranularity' => $dataDetails['dataGranularity'],
+					'dataSource' => $dataDetails['dataSource']
+			);
+		}
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'marketCategory' => array_merge($dataArray)
+		);
+
+		return $resultArray;
+	}
+
+	function deliverGoodCourse($goodParams = NULL){
+		
+		if($goodParams){
+			$params = $goodParams;
+		}else{
+			$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+			$params = $getCriteria['params'];
+		}
+
+		foreach($params AS $key => $value){
+
+			$validRanges = array(
+				'WEEK' => '-1 week',
+				'MONTH' => '-1 month',
+				'QUARTER' => '-3 months',
+				'HALF_YEAR' => '-6 months',
+				'YEARLY' => '-1 year'
+			);
+
+			$requestedGood = intval($value['goodId']);
+			$requestedRange = $this->cleanString($value['dataRange']);
+
+
+			if(array_key_exists($requestedRange,$validRanges)){
+
+
+				$startDate = strtotime($validRanges[$requestedRange],time());
+
+				$currentPriceQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+					'uid,price,originalid,datetime,details',
+					'tx_agrarapp_marketdata',
+					'uid = '. $requestedGood
+				);
+
+				$currentPriceRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($currentPriceQuery);
+
+				$goodDetails = json_decode($currentPriceRow['details'],1);
+
+				$dataArray = array(
+					'goodId' => $currentPriceRow['uid'],
+					'requestDate' => substr((microtime(true) *10000),0,-1),
+					'fromDate' => $startDate * 1000,
+					'currency' => $goodDetails['currency'],
+					'values' => array(
+						0 => array(
+							'amount' => $currentPriceRow['price'],
+							'timestamp' => $currentPriceRow['datetime'] * 1000
+						)
+					)
+				);
+
+				$pastPriceQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+					'uid,price,originalid,datetime',
+					'tx_agrarapp_marketdata_history',
+					'originalid LIKE \''. $currentPriceRow['originalid'] .'\' AND datetime >= '. $startDate,
+					'',
+					'datetime DESC'
+				);
+
+				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($pastPriceQuery)){
+
+					$dataArray['values'][] = array(
+						'amount' => $row['price'],
+						'timestamp' => $row['datetime'] * 1000
+					);
+				}
+
+				$dataArray['values'] = array_reverse($dataArray['values']);
+
+				$resultArray = array(
+					'requestDate' => substr((microtime(true) *10000),0,-1),
+					'errorCode' => $errorCode,
+					'errorMessage' => $errorMessage,
+					'goodCourse' => $dataArray
+				);
+
+
+
+			}
+
+			return $resultArray;
+
+
+		}
+
+
+
+	}
+
+	function storeSubscribeNews(){
+
+		$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+
+		$deviceId = $this->cleanString($getCriteria['deviceId']);
+		$params = $getCriteria['params'];
+
+		$GLOBALS['TYPO3_DB']->exec_DELETEquery(
+			'tx_agrarapp_subscriptions',
+			'deviceid = \''. $deviceId .'\' AND subtype = 0'
+		);
+
+		foreach($params AS $key => $value){
+
+			$zipCode = $this->cleanZipCode($value['zipCode']);
+
+
+			if($value['categoryId'] && $zipCode){
+				$insertArray = array(
+					'tstamp' => time(),
+					'crdate' => time(),
+					'category' => intval($value['categoryId']),
+					'zipcode' => $zipCode,
+					'subtype' => 0,
+					'deviceid' => $deviceId
+				);
+
+				$insertQuery = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
+					'tx_agrarapp_subscriptions',
+					$insertArray
+				);
+			}
+		}
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage
+		);
+
+		return $resultArray;
+
+
+	}
+
+	function storeSubscribeEvents(){
+
+		$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+
+		$deviceId = $this->cleanString($getCriteria['deviceId']);
+		$params = $getCriteria['params'];
+
+		$GLOBALS['TYPO3_DB']->exec_DELETEquery(
+			'tx_agrarapp_subscriptions',
+			'deviceid = \''. $deviceId .'\' AND subtype = 1'
+		);
+
+		foreach($params AS $key => $value){
+
+			$zipCode = $this->cleanZipCode($value);
+
+
+			$insertArray = array(
+				'tstamp' => time(),
+				'crdate' => time(),
+				'zipcode' => $zipCode,
+				'subtype' => 1,
+				'deviceid' => $deviceId
+			);
+
+
+			$insertQuery = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
+				'tx_agrarapp_subscriptions',
+				$insertArray
+			);
+
+
+		}
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage
+		);
+
+		return $resultArray;
+
+
+	}
+
+	function createMaps(){
+
+		$filePath = __DIR__ .'/../../../../../files/ext/weather/wetter_niederschlag_gross.zip';
+		$folderPath = 'fileadmin/files/weather';
+
+		if(is_file($filePath)){
+			$zip = new ZipArchive;
+			$res = $zip->open($filePath);
+			if ($res === TRUE) {
+				$zip->extractTo($folderPath);
+				$zip->close();
+			}
+		}
+
+
+		$dh  = opendir($folderPath);
+
+		//Alle Dateien im Verzeichnis auslesen und in ein Array packen
+		while (false !== ($filename = readdir($dh))) {
+
+			if(is_file($folderPath .'/'. $filename)){
+				$files[] = $filename;
+			}
+
+		}
+
+		sort($files);
+		foreach($files AS $file){
+
+			$fileDetails = pathinfo($file);
+
+			$filesArray[substr($fileDetails['filename'], 0,-2)][] = $fileDetails['basename'];
+
+		}
+
+		foreach($filesArray AS $key => $value){
+
+			if(!is_dir($folderPath .'/maps/')){
+				mkdir($folderPath .'/maps/', 0750, true);
+			}
+
+			if(!is_dir($folderPath .'/maps/'.$key)){
+				mkdir($folderPath .'/maps/'.$key , 0750, true);
+
+			}
+
+			foreach($value AS $fileIndex => $fileTempName){
+
+				$this->make_thumb($folderPath .'/'.$fileTempName,$folderPath .'/maps/'. $key .'/picture_' . $fileIndex . '_l.jpg',480);
+				//$this->make_thumb($folderPath .'/'.$fileTempName,$folderPath .'/maps/'. $key .'/picture_' . $fileIndex . '_m.jpg',230);
+				//$this->make_thumb($folderPath .'/'.$fileTempName,$folderPath .'/maps/'. $key .'/picture_' . $fileIndex . '_s.jpg',115);
+
+				//unlink($fileTempName);
+			}
+
+
+		}
+
+		foreach($fileNamesArray AS $index1 => $filesArray){
+
+
+
+
+
+		}
+
+
+
+
+
+
+	}
+
+	function processRegistrationRequest(){
+
+		$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+
+		$getCriteria['action'] = $this->cleanString($getCriteria['action']);
+
+		$validRequests = array(
+			'GET' => array(
+				'INFO' => 'valid'
+			),
+			'PUT' => array(
+				'REGISTER' => 'valid',
+				'DEREGISTER' => 'valid'
+			)
+		);
+
+		//Check if request is valid for the selected request method. If not, return null. If yes, proceed
+		if($validRequests[$_SERVER['REQUEST_METHOD']][$getCriteria['action']] === 'valid'){
+
+		}else{
+			return null;
+		}
+
+		if($getCriteria['action'] === 'REGISTER'){
+
+
+			$checkDeviceQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'uid',
+				'tx_agrarapp_devices',
+				'deviceid = \''. $this->cleanString($getCriteria['deviceId']).'\''
+			);
+
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($checkDeviceQuery) === 0) {
+				$insertArray = array(
+					'tstamp' => time(),
+					'crdate' => time(),
+					'deviceid' => $this->cleanString['deviceId'],
+					'ostype' => $this->cleanString['osType']
+				);
+
+				$GLOBALS['TYPO3_DB']->exec_INSERTquery(
+					'tx_agrarapp_devices',
+					$insertArray
+				);
+
+				$detailsArray = array(
+					'deviceId' => $this->cleanString($getCriteria['deviceId']),
+					'status' => 'REGISTERED'
+				);
+
+
+			}else{
+
+				$updateArray = array(
+					'tstamp' => time(),
+					'deleted' => 0
+				);
+
+				$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+					'tx_agrarapp_devices',
+					'deviceid = \''. $this->cleanString($getCriteria['deviceId']).'\'',
+					$updateArray
+				);
+
+				$detailsArray = array(
+					'deviceId' => $this->cleanString['deviceId'],
+					'status' => 'REGISTERED'
+				);
+
+				$detailsArray['newsSubsriptions'] = $this->getSubscriptions($getCriteria['deviceId'],'NEWS');
+				$detailsArray['eventSubsriptions'] = $this->getSubscriptions($getCriteria['deviceId'],'EVENTS');
+
+			}
+		}if($getCriteria['action'] === 'DEREGISTER'){
+
+			$checkDeviceQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'uid',
+				'tx_agrarapp_devices',
+				'deviceid = \''. $this->cleanString($getCriteria['deviceId']).'\''
+			);
+
+			/*
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($checkDeviceQuery) === 1) {
+
+				$GLOBALS['TYPO3_DB']->exec_DELETEquery(
+					'tx_agrarapp_devices',
+					'deviceid = \''. $this->cleanString($getCriteria['deviceId']).'\''
+				);
+
+				$this->deleteSubscriptions($getCriteria['deviceId']);
+			}
+			*/
+			$detailsArray = array(
+				'deviceId' => $this->cleanString($getCriteria['deviceId']),
+				'status' => 'DEREGISTERED'
+			);
+
+		}elseif($getCriteria['action'] === 'INFO'){
+
+			$checkDeviceQuery = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'uid',
+				'tx_agrarapp_devices',
+				'deviceid = \''. trim($getCriteria['deviceId']).'\''
+			);
+
+			if($GLOBALS['TYPO3_DB']->sql_num_rows($checkDeviceQuery) === 1) {
+
+				$detailsArray = array(
+					'deviceId' => $getCriteria['deviceId'],
+					'status' => 'REGISTERED'
+				);
+
+				$detailsArray['newsSubsriptions'] = $this->getSubscriptions($getCriteria['deviceId'],'NEWS');
+				$detailsArray['eventSubsriptions'] = $this->getSubscriptions($getCriteria['deviceId'],'EVENTS');
+
+
+			}else{
+
+				$detailsArray = array(
+					'deviceId' => $this->cleanString($getCriteria['deviceId']),
+					'status' => 'UNREGISTERED'
+				);
+
+			}
+
+
+		}
+
+
+
+		$baseArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage
+		);
+
+		$resultArray = array_merge($baseArray,$detailsArray);
+
+		return $resultArray;
+
+	}
+
+	function getSubscriptions($deviceId,$type){
+
+		switch($type){
+			case 'NEWS':
+				$subtype = 0;
+				break;
+			case 'EVENTS':
+				$subtype = 1;
+				break;
+			default:
+				$subtype = -1;
+		}
+
+		if($subtype === 0 && $deviceId){
+
+			$selectQuery = 'category AS categoryId,zipcode as zipCode';
+		}elseif($subtype === 1 && $deviceId){
+			$selectQuery = 'zipcode AS zipCode';
+		}
+
+		$getSubscriptions = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			$selectQuery,
+			'tx_agrarapp_subscriptions',
+			'deviceid = \''. $this->cleanString($deviceId) .'\''
+		);
+
+		$resultArray = array();
+
+		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($getSubscriptions)){
+
+			if($subtype === 0){
+				$resultArray[] = $row;
+			}else{
+				$resultArray[] = $row['zipCode'];
+			}
+
+		}
+
+		return $resultArray;
+
+	}
+
+	function deleteSubscriptions($deviceID){
+
+		$GLOBALS['TYPO3_DB']->exec_DELETEquery(
+			'tx_agrarapp_subscriptions',
+			'deviceid = \''. $this->cleanString($deviceId) .'\''
+		);
+
+	}
+
+	function deliverWeatherMaps(){
+
+		$getCriteria = json_decode(stripslashes($_GET['criteria']),1);
+
+		$params = $getCriteria['params'];
+
+		$animatedMaps = array(
+			0 => 'RADAR',
+			1 => 'RAIN',
+			2 => 'SAT_GER'
+		);
+
+		$staticMaps = array(
+			0 => 'HUMIDITY',
+			1 => 'TEMP',
+			2 => 'DEW'
+		);
+
+		$globalMaps = array(
+			1 => 'SAT_EU'
+		);
+
+		if(count($params['mapTypes'])){
+			$i = 0;
+			foreach($params['mapTypes'] AS $key => $value){
+
+				$mapResult[$i] = array(
+					'mapType' => $this->cleanString($value),
+					'mapRange' => $this->cleanString($params['mapRange']),
+					'mapRegion' => $this->cleanString($params['mapRegion'])
+				);
+
+				if(in_array($value,$animatedMaps)){
+					$mapResult[$i]['image'] = $this->getAnimatedImages($value,$params['mapRange'],$params['mapRegion']);
+				}elseif(in_array($value,$staticMaps)){
+					$mapResult[$i]['image'][] = $this->getStaticImage($value,$params['mapRange'],$params['mapRegion']);
+				}elseif(in_array($value,$globalMaps)){
+					$mapResult[$i]['image'][] = $this->getGlobalImage($value);
+				}else{
+					$mapResult = FALSE;
+				}
+
+
+				$i++;
+
+			}
+
+		}
+
+		$resultArray = array(
+			'requestDate' => substr((microtime(true) *10000),0,-1),
+			'errorCode' => $errorCode,
+			'errorMessage' => $errorMessage,
+			'maps' => $mapResult
+		);
+
+		return $resultArray;
+
+	}
+
+	function getGlobalImage($mapType){
+		$path = PATH_site.'fileadmin/files/weather/maps/'. $this->cleanString($mapType);
+		$relativePath = 'fileadmin/files/weather/maps/'. $this->cleanString($mapType);
+
+		$dh  = opendir($path);
+		if($dh){
+			//Alle Dateien im Verzeichnis auslesen und in ein Array packen
+			while (false !== ($filename = readdir($dh))) {
+				if(is_file($path .'/'. $filename)){
+					$fileDetails = pathinfo($filename);
+                                        $fileDetailsArray = explode('_',$fileDetails['filename']);
+
+
+                                        $files[substr($fileDetailsArray[1],0,-1)] = $relativePath .'/'. $fileDetailsArray[0] .'_'. $fileDetailsArray[1];
+				}
+			}
+			$files = array_unique($files);
+			krsort($files);
+			$filesArray = array_slice($files, 0, 1, 1);
+		}else{
+			$filesArray = null;
+		}
+
+		foreach($filesArray AS $key => $value){
+			$filesArrayResult[] = array(
+				'id' => $key,
+				'url' => $value
+			);
+		}
+
+		return $filesArrayResult;
+	}
+
+	function getStaticImage($mapType,$mapRange,$mapRegion){
+		$path = PATH_site.'fileadmin/files/weather/maps/'. $this->cleanString($mapType).'/'. $this->cleanString($mapRegion);
+	
+		$relativePath = 'fileadmin/files/weather/maps/'. $this->cleanString($mapType).'/'. $this->cleanString($mapRegion);
+
+		$dh  = opendir($path);
+		if($dh){
+			
+			//Alle Dateien im Verzeichnis auslesen und in ein Array packen
+			while (false !== ($filename = readdir($dh))) {
+				if(is_file($path .'/'. $filename)){
+					$fileDetails = pathinfo($filename);
+					$fileDetailsArray = explode('_',$fileDetails['filename']);
+					
+					
+					$files[substr($fileDetailsArray[1],0,-1)] = $relativePath .'/'. $fileDetailsArray[0] .'_'. $fileDetailsArray[1];
+				}
+			}
+			$files = array_unique($files);
+			
+			krsort($files);
+			$filesArray = array_slice($files, 0, 1, 1);
+			
+		}else{
+		
+			$filesArray = null;
+		}
+
+		foreach($filesArray AS $key => $value){
+			$filesArrayResult[] = array(
+				'id' => $key,
+				'url' => $value
+			);
+		}
+
+		return $filesArrayResult;
+
+	}
+
+	function getAnimatedImages($mapType,$mapRange,$mapRegion){
+
+		$maxImages = array(
+			'RADAR' => 24,
+			'SATELITE' => 24,
+			'RAIN' => 0
+		);
+
+		$path = PATH_site.'fileadmin/files/weather/maps/'. $this->cleanString($mapType).'/'. $this->cleanString($mapRegion);
+		$relativePath = 'fileadmin/files/weather/maps/'. $this->cleanString($mapType).'/'. $this->cleanString($mapRegion);
+		$dh  = opendir($path);
+		if($dh){
+			
+			//Alle Dateien im Verzeichnis auslesen und in ein Array packen
+			while (false !== ($filename = readdir($dh))) {
+				if(is_file($path .'/'. $filename)){
+					$fileDetails = pathinfo($filename);
+					$fileDetailsArray = explode('_',$fileDetails['filename']);
+						
+					if($mapType == 'RAIN'){		
+						
+						$files[substr($fileDetailsArray[1],0,-1)] = $relativePath .'/'. $fileDetailsArray[0] .'_'. $fileDetailsArray[1] .'_'.$fileDetailsArray[2];
+ 
+					}else{
+						
+						$files[substr($fileDetailsArray[1],0,-1)] = $relativePath .'/'. $fileDetailsArray[0] .'_'. $fileDetailsArray[1];
+					}
+				}
+			}
+			$files = array_unique($files);
+			if($maxImages[$mapType]){
+				$filesArray = array_slice($files, 0, $maxImages[$mapType],1);
+				ksort($filesArray);
+			}else{
+				$filesArray = $files;
+				asort($filesArray);
+			}
+		}else{
+			$filesArray = null;
+		}
+
+		foreach($filesArray AS $key => $value){
+			$filesArrayResult[] = array(
+				'id' => $key,
+				'url' => $value
+			);
+		}
+
+		return $filesArrayResult;
+
+	}
+
+	function make_thumb($src, $dest, $desired_width) {
+
+		/* read the source image */
+		$source_image = imagecreatefromjpeg($src);
+		$width = imagesx($source_image);
+		$height = imagesy($source_image);
+
+		/* find the "desired height" of this thumbnail, relative to the desired width  */
+		$desired_height = floor($height * ($desired_width / $width));
+
+		/* create a new, "virtual" image */
+		$virtual_image = imagecreatetruecolor($desired_width, $desired_height);
+
+		/* copy source image at a resized size */
+		imagecopyresampled($virtual_image, $source_image, 0, 0, 0, 0, $desired_width, $desired_height, $width, $height);
+
+		/* create the physical thumbnail image to its destination */
+		imagejpeg($virtual_image, $dest);
+	}
+
+	function cleanZipCode($zipCode){
+
+		$zipCode = preg_replace('[\D]', '', trim($zipCode));
+		$zipCode = substr($zipCode,0,5);
+		$zipCode = ltrim($zipCode, '0');
+		$zipCode = intval($zipCode);
+
+
+		return $zipCode;
+
+	}
+
+	function cleanString($string){
+
+		$value = trim(htmlentities(strip_tags(preg_replace('/\s/', '', $string))));
+		if (get_magic_quotes_gpc()){
+			$value = stripslashes($value);
+		}
+		$value = mysql_real_escape_string($value);
+		return $value;
+	}
+}
+
+
+
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/agrarapp/pi1/class.tx_agrarapp_pi1.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/agrarapp/pi1/class.tx_agrarapp_pi1.php']);
+}
+
+?>

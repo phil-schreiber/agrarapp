@@ -1,0 +1,234 @@
+<?php
+
+error_reporting(E_ALL ^ E_NOTICE);
+
+
+/**
+ * importWarnings
+ *
+ * @package
+ * @author Gregor
+ * @copyright Copyright (c) 2014
+ * @version $Id$
+ * @access public
+ */
+class importWarnings {
+
+
+	private $warningStorage = array();
+	private $finalWarnings = array();
+	private $typeMapping = array();
+
+	function importWarningsData(){
+
+		$connection = mysql_connect('localhost','goldg','OwO@B@2r') or die ("Verbindungsversuch fehlgeschlagen");
+                mysql_select_db('T3_B2CAPPT',$connection);
+                mysql_query("SET NAMES 'utf8'");
+                mysql_query("SET CHARACTER SET 'utf8'");
+
+		
+		$deleteQuery = 'DELETE FROM tx_agrarapp_weatherwarnings WHERE endtime < '. time();		
+		$result = mysql_query($deleteQuery);
+	
+		$this->buildTypeMapping();
+
+		$sourceFile = $this->getSourceFile();
+		//Parsen der Rohdaten
+		$this->xmlParse($sourceFile,'landkreis','importWarnings:callback');
+
+		
+		foreach($this->warningStorage AS $number => $warning){
+			
+			$warningsArray[$warning['@attributes']['id']][] = array(
+				'timestamp' => strtotime($warning['ausgabe']),
+				'valid_from' => strtotime($warning['start']),
+				'valid_to' => strtotime($warning['ende']),
+				'warning_level' => $this->typeMapping[$warning['typ_id']]['level'],
+				'warning_message' => $this->typeMapping[$warning['typ_id']]['text'],
+				'type' => $warning['typ_id']
+			);
+		}
+		
+		
+		foreach($warningsArray AS $key => $warningSets){
+			
+			
+			$tempWarnings = array();
+			$consolidatedWarnings = array();	
+			$sqlQuery = 'SELECT GROUP_CONCAT(zip) AS zipcodes FROM tx_agrarapp_zipcodes WHERE kfz = "'. $key .'"';
+
+			$result = mysql_query($sqlQuery);
+			$resultArray = mysql_fetch_array($result,MYSQL_ASSOC);
+
+			foreach($warningSets AS $warningNumber => $warningDetails){
+				
+				if(is_array($tempWarnings[$warningDetails['type']])){
+
+					if($tempWarnings[$warningDetails['type']]['timestamp'] < $warningDetails['timestamp']){
+						$tempWarnings[$warningDetails['type']] = $warningDetails;
+					}		
+					
+				}else{
+					$tempWarnings[$warningDetails['type']] = $warningDetails;
+				}	
+				
+			}
+
+			foreach($tempWarnings AS $keyTemp => $valueTemp){
+				$consolidatedWarnings[] = $valueTemp;
+			}
+			
+			
+
+			if(is_array($resultArray)){
+				$zipArray = explode(',',$resultArray['zipcodes']);
+				foreach($zipArray AS $keyZip => $valueZip){
+					
+					for($i=0;$i<count($consolidatedWarnings);$i++) {
+						
+						
+						$consolidatedWarnings[$i]['zipcode'] = $valueZip;
+
+					}					
+														
+					$this->finalWarnings[$valueZip] = $consolidatedWarnings;
+				}
+			}
+		}
+
+
+		foreach($this->finalWarnings AS $key => $value){
+								
+				
+			$fileContentArray = array();
+			foreach($value AS $keyDetails => $valueDetails){
+				$fileContentArray[$keyDetails] = $valueDetails;
+				$fileContentArray[$keyDetails]['valid_from'] = $fileContentArray[$keyDetails]['valid_from'] * 1000;
+				$fileContentArray[$keyDetails]['valid_to'] = $fileContentArray[$keyDetails]['valid_to'] * 1000;
+				
+					
+				$insertArray = array(
+					'tstamp' => time(),
+					'crdate' => time(),
+					'zipcode' => $key,
+					'warninglevel' => $valueDetails['warning_level'],
+					'warningtext' => $valueDetails['warning_message'],
+					'starttime' => $valueDetails['valid_from'],
+					'endtime' => $valueDetails['valid_to'],
+					'warningtype' => $valueDetails['type']
+				);
+				$insertFields = array();
+				$insertValues = array();
+				foreach($insertArray AS $keyInsert => $valueInsert){
+		                        $insertFields[] = mysql_real_escape_string($keyInsert);
+                		        $insertValues[] ='\''. mysql_real_escape_string($valueInsert) .'\'';
+                		}			
+
+				$sqlQuery = 'INSERT INTO tx_agrarapp_weatherwarnings ('. implode(',',$insertFields) .') VALUES ('. implode(',',$insertValues)  .')';
+				$query = mysql_query($sqlQuery);
+				
+					
+			}
+
+				
+		
+			$fileContent = json_encode($fileContentArray);
+
+			$file = '/var/www/t/fileadmin/files/weatherwarnings/'. $key .'.txt';
+
+			file_put_contents($file, $fileContent);
+		}
+		   
+	
+
+
+	}
+
+
+
+	function callback($array){
+		//Zwischenspeicherung der Daten
+		$this->warningStorage[] = $array;
+
+	}
+
+
+
+	function getSourceFile(){
+
+
+		//Definition des Pfades und Öfnen des Ordners
+		$path = '/home/aptagricheck/files/ext/weather/wetterwarnungen_utf8.xml';
+		//$path = '/var/www/t/wetter.xml';
+
+		//Rüe
+		return $path;
+	}
+
+
+	function xmlParse($file,$wrapperName,$callback,$limit=NULL){
+		$xml = new XMLReader();
+		if(!$xml->open($file)){
+			die("Failed to open input file.");
+		}
+		$n=0;
+		$x=0;
+		while($xml->read()){
+			if($xml->nodeType==XMLReader::ELEMENT && $xml->name == $wrapperName){
+				$doc = new DOMDocument('1.0', 'UTF-8');
+				$xmlText = simplexml_import_dom($doc->importNode($xml->expand(),true));
+				$dataArray = json_decode(json_encode((array) $xmlText), 1);
+				if($limit==NULL || $x<$limit){
+					if($this->callback($dataArray)){
+						$x++;
+					}
+				}
+				$n++;
+			}
+		}
+		$xml->close();
+	}
+
+
+	function buildTypeMapping(){
+                $wrapperName = 'warnung';
+		$limit = NULL;
+		$file = '/var/www/t/fileadmin/files/import_weather/liste_warnungstypen.xml';
+	
+		$xml = new XMLReader();
+                if(!$xml->open($file)){
+                        die("Failed to open input file.");
+                }
+                $n=0;
+                $x=0;
+                while($xml->read()){
+                        if($xml->nodeType==XMLReader::ELEMENT && $xml->name == $wrapperName){
+                                $doc = new DOMDocument('1.0', 'UTF-8');
+                                $xmlText = simplexml_import_dom($doc->importNode($xml->expand(),true));
+                                $dataArray = json_decode(json_encode((array) $xmlText), 1);
+                                if($limit==NULL || $x<$limit){
+  	                             	$this->typeMapping[$dataArray['@attributes']['id']] = array(
+						'level' => $dataArray['warnstufe'],
+						'text' => $dataArray['ereignis']
+					);
+					$x++;
+                                }
+                                $n++;
+                        }
+                }
+                $xml->close();
+        }
+	
+
+
+}
+
+//Instanzierung der Klasse und Aufruf der Import-Funktion
+$import = new importWarnings;
+$import->importWarningsData();
+
+
+?>
+
+
+

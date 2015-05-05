@@ -432,14 +432,14 @@ CREATE TABLE tx_agrarapp_marketdata (
 	sorting int(10) DEFAULT '0' NOT NULL,
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
-	price double DEFAULT '',
+	price double DEFAULT NULL,
 	originalid text,
 	datetime int(11) DEFAULT '0' NOT NULL,
 	details text,
 	category int(11) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (originalid(100)),
-	KEY (uid),
+	UNIQUE KEY uid (uid),
 	KEY parent (pid)
 ) ENGINE=InnoDB;
 
@@ -456,7 +456,7 @@ CREATE TABLE tx_agrarapp_marketdata_history (
 	cruser_id int(11) DEFAULT '0' NOT NULL,
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
-	price double DEFAULT '',
+	price double DEFAULT NULL,
 	originalid text,
 	datetime int(11) DEFAULT '0' NOT NULL,
 	details text,
@@ -529,6 +529,7 @@ CREATE TABLE tx_agrarapp_locations_zipcodes_mm (
 #
 # Table structure for table 'tx_agrarapp_locations'
 #
+#
 CREATE TABLE tx_agrarapp_locations (
 	uid int(11) NOT NULL auto_increment,
 	pid int(11) DEFAULT '0' NOT NULL,
@@ -547,6 +548,7 @@ CREATE TABLE tx_agrarapp_locations (
 	email tinytext,
 	zipcodes int(11) DEFAULT '0' NOT NULL,
 	baywaid int(11) DEFAULT '0' NOT NULL,
+	competence tinyint(4) NOT NULL DEFAULT '0',
 
 	PRIMARY KEY (uid),
 	KEY parent (pid)
@@ -556,6 +558,7 @@ CREATE TABLE tx_agrarapp_locations (
 #
 # Table structure for table 'tx_agrarapp_devices'
 #
+#
 CREATE TABLE tx_agrarapp_devices (
     uid int(11) NOT NULL auto_increment,
     pid int(11) DEFAULT '0' NOT NULL,
@@ -563,8 +566,7 @@ CREATE TABLE tx_agrarapp_devices (
     crdate int(11) DEFAULT '0' NOT NULL,
     cruser_id int(11) DEFAULT '0' NOT NULL,
     deleted tinyint(4) DEFAULT '0' NOT NULL,
-    hidden tinyint(4) DEFAULT '0' NOT NULL,
-    hidden tinyint(4) DEFAULT '0' NOT NULL,
+    hidden tinyint(4) DEFAULT '0' NOT NULL,    
     deviceid text,
     ostype text,
 
@@ -577,6 +579,7 @@ CREATE TABLE tx_agrarapp_devices (
 #
 # Table structure for table 'tx_agrarapp_subscriptions'
 #
+#
 CREATE TABLE tx_agrarapp_subscriptions (
     uid int(11) NOT NULL auto_increment,
     pid int(11) DEFAULT '0' NOT NULL,
@@ -584,8 +587,7 @@ CREATE TABLE tx_agrarapp_subscriptions (
     crdate int(11) DEFAULT '0' NOT NULL,
     cruser_id int(11) DEFAULT '0' NOT NULL,
     deleted tinyint(4) DEFAULT '0' NOT NULL,
-    hidden tinyint(4) DEFAULT '0' NOT NULL,
-    hidden tinyint(4) DEFAULT '0' NOT NULL,
+    hidden tinyint(4) DEFAULT '0' NOT NULL,    
     category int(11) DEFAULT '0' NOT NULL,
     zipcode int(11) DEFAULT '0' NOT NULL,
     subtype int(11) DEFAULT '0' NOT NULL,
@@ -596,3 +598,68 @@ CREATE TABLE tx_agrarapp_subscriptions (
 ) ENGINE=InnoDB;
 
 
+#
+# Table structure for table 'tx_agrarapp_offers'
+#
+#
+CREATE TABLE tx_agrarapp_offers (
+	uid int(11) NOT NULL auto_increment,
+	pid int(11) DEFAULT '0' NOT NULL,
+	tstamp int(11) DEFAULT '0' NOT NULL,
+	crdate int(11) DEFAULT '0' NOT NULL,
+	cruser_id int(11) DEFAULT '0' NOT NULL,
+	sys_language_uid int(11) DEFAULT '0' NOT NULL,
+	l10n_parent int(11) DEFAULT '0' NOT NULL,
+	l10n_diffsource mediumblob,
+	deleted tinyint(4) DEFAULT '0' NOT NULL,
+	hidden tinyint(4) DEFAULT '0' NOT NULL,
+	category int(11) DEFAULT '0' NOT NULL,
+	validfromdate int(11) DEFAULT '0' NOT NULL,	
+	validtodate int(11) DEFAULT '0' NOT NULL,		
+	teaser text,
+	title text,	
+	soldout tinyint(4) DEFAULT '0' NOT NULL,
+	originalid int(11) DEFAULT '0' NOT NULL,
+	bodytext text,
+	image text,
+	bodytext2 text,
+	image2 text,
+	bodytext3 text,
+	image3 text,
+
+	PRIMARY KEY (uid),
+	KEY parent (pid)
+) ENGINE=InnoDB;
+
+#
+# Table structure for table 'tx_agrarapp_offercategory'
+#
+#
+CREATE TABLE tx_agrarapp_offercategory (
+    uid int(11) NOT NULL auto_increment,
+    pid int(11) DEFAULT '0' NOT NULL,
+    tstamp int(11) DEFAULT '0' NOT NULL,
+    crdate int(11) DEFAULT '0' NOT NULL,
+    cruser_id int(11) DEFAULT '0' NOT NULL,
+    deleted tinyint(4) DEFAULT '0' NOT NULL,
+    hidden tinyint(4) DEFAULT '0' NOT NULL,    
+    parentcategory int(11) DEFAULT '0' NOT NULL,    
+    title text,
+	originalid int(11) DEFAULT '0' NOT NULL,
+
+    PRIMARY KEY (uid),
+    KEY parent (pid)
+) ENGINE=InnoDB;
+
+#
+# Table structure for table 'tx_agrarapp_offers_locations_mm'
+#
+#
+CREATE TABLE tx_agrarapp_offers_locations_mm (
+  uid_local int(11) DEFAULT '0' NOT NULL,
+  uid_foreign int(11) DEFAULT '0' NOT NULL,
+  tablenames varchar(30) DEFAULT '' NOT NULL,
+  sorting int(11) DEFAULT '0' NOT NULL,
+  KEY uid_local (uid_local),
+  KEY uid_foreign (uid_foreign)
+);

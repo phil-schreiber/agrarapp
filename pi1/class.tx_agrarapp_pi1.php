@@ -96,7 +96,10 @@ class tx_agrarapp_pi1 extends tslib_pibase {
 		    10 => 'admindeviceregistration',
 		    11 => 'getdashboardservice',
 		    12 => 'background',
-		    13 => 'weatherwarning'
+		    13 => 'weatherwarning',
+			14 => 'findofferheaders',
+			15 => 'getoffercontentbyid',
+			16 => 'getplantbyid'
 		);
 		// Unterstütze Services für POST Aufrufe
 		$validModesPost = array(
@@ -273,6 +276,17 @@ class tx_agrarapp_pi1 extends tslib_pibase {
                                         echo json_encode($resultArray);
                                         die();
                                         break;
+				case 'findofferheaders':
+                                        $resultArray = $this->findOfferHeaders();
+
+                                        if ($_GET['debug'] == 1) {
+                                                t3lib_div::debug($resultArray);
+                                        }
+
+                                        echo json_encode($resultArray);
+                                        die();
+                                        break;
+									
 				default:
 					$content = '';
 			}
@@ -2141,7 +2155,81 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 
 
 	}
-
+	
+	function findofferheaders(){
+		$returnArray=array();
+		
+		if ($_POST) {
+			$getCriteria = json_decode(stripslashes($_POST['criteria']), 1);
+		} else {
+			$getCriteria = json_decode(stripslashes($_GET['criteria']), 1);
+		}
+		$params = $getCriteria['params'];
+		$zipcodeArray=array();
+		foreach($params AS $key => $value) {
+			
+			//Wenn eine PLZ definiert ist, dann Bereinigung und Verwendung, falls nein, dann Dummy-PLZ, die nicht existiert
+			//Letzteres erforderlich, um saubere SQL-Queries zu generieren
+			if ($value['zipCode'] != '') {
+				$zipcode = $this->cleanZipCode($value['zipCode']);
+				$zipcodeArray[] = $zipcode;
+			} else {
+				$zipcodeArray[] = '999999';
+			}
+		}
+		if(!empty($zipcodeArray)){
+			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'tx_agrarapp_offers.*,lvl1.*,lvl2.*',
+				'tx_agrarapp_offers LEFT JOIN tx_agrarapp_offercategory AS lvl1 ON tx_agrarapp_offers.category=lvl1.uid LEFT JOIN tx_agrarapp_offers.category AS lvl2 ON lvl1.pid=lvl2.uid
+					LEFT JOIN tx_agrarapp_offers_locations_mm ON tx_agrarapp_offers_locations_mm.uid_local=tx_agrarapp_offers.uid 
+					LEFT JOIN tx_agrarapp_locations_zipcodes_mm ON tx_agrarapp_offers_locations_mm.uid_foreign= tx_agrarapp_locations_zipcodes_mm.uid_local',
+				'tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.validtodate<'.time().' AND tx_agrarapp_locations_zipcodes_mm IN ('.implode(',',$zipcodeArray).') ORDER BY lvl1.title ASC, lvl1.title ASC, tx_agrarapp_offers.validFromDate DESC'
+			);
+			
+			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){
+				if($queryRow['lvl2.uid']){
+					$returnArray[]=array(
+						'offerHeaders' => NULL,
+						'categoryName' => $queryRow['lvl2.title'],
+						'categoryId' => $queryRow['lvl2.uid'],
+						[] => array(
+							'categoryName' => $queryRow['lvl1.title'],
+							'categoryId' => $queryRow['lvl1.uid'],
+							'offerHeaders' => array(
+								[] => array(
+										'offerId'=>$queryRow['tx_agrarapp_offers.uid'],
+										'teaser'=>$queryRow['tx_agrarapp_offers.teaser'],
+										'validFromDate'=>$queryRow['tx_agrarapp_offers.validfromdate']*1000,
+										'validToDate'=>$queryRow['tx_agrarapp_offers.validtodate']*1000
+									)				
+							)	
+						)
+					);
+					
+					
+					
+				}else{					
+					$returnArray[]=array(						
+						'categoryName' => $queryRow['lvl1.title'],
+						'categoryId' => $queryRow['lvl1.uid'],						
+						'offerHeaders' => array(
+							[] => array(
+									'offerId'=>$queryRow['tx_agrarapp_offers.uid'],
+									'teaser'=>$queryRow['tx_agrarapp_offers.teaser'],
+									'validFromDate'=>$queryRow['tx_agrarapp_offers.validfromdate']*1000,
+									'validToDate'=>$queryRow['tx_agrarapp_offers.validtodate']*1000
+								)				
+						)	
+						
+					);
+				}
+			}
+		}
+		
+		
+		
+		return $returnArray;
+	}
 
 	/**
 	 * tx_agrarapp_pi1::storeSubscribeNews()

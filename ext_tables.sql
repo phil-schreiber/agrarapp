@@ -613,7 +613,7 @@ CREATE TABLE tx_agrarapp_offers (
 	l10n_diffsource mediumblob,
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
-	category int(11) DEFAULT '0' NOT NULL,
+	offercategory int(11) DEFAULT '0' NOT NULL,
 	validfromdate int(11) DEFAULT '0' NOT NULL,	
 	validtodate int(11) DEFAULT '0' NOT NULL,		
 	teaser text,

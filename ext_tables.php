@@ -380,6 +380,8 @@ $TCA['tx_agrarapp_devices'] = array(
 
 
 
+
+
 t3lib_div::loadTCA('tt_content');
 $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi1'] = 'layout,select_key,pages';
 

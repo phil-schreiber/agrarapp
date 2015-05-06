@@ -2349,6 +2349,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 	 * @return array $resultArray Array mit den Plant-Details
 	 */	
 	function getPlantById(){
+		$plant=array();
 		$returnArray=array(
 			'requestDate' => substr((microtime(true) * 10000), 0, -1),
 		    'errorCode' => '',
@@ -2371,18 +2372,18 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 				);
 		
 		while($queryRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){
-			$returnArray['city'] = $queryRow['city'];
-			$returnArray['contactName'] = $queryRow['email'];			
-			$returnArray['division'] = $queryRow['division'];
-			$returnArray['email'] = $queryRow['email'];
-			$returnArray['fax'] = $queryRow['fax'];
-			$returnArray['mobile'] = $queryRow['mobile'];
-			$returnArray['name'] = $queryRow['location'];
-			$returnArray['phone'] = $queryRow['phone'];
-			$returnArray['street'] = $queryRow['street'];
-			$returnArray['zipCode'] = $queryRow['zip'];
+			$plant['city'] = $queryRow['city'];
+			$plant['contactName'] = $queryRow['email'];			
+			$plant['division'] = $queryRow['division'];
+			$plant['email'] = $queryRow['email'];
+			$plant['fax'] = $queryRow['fax'];
+			$plant['mobile'] = $queryRow['mobile'];
+			$plant['name'] = $queryRow['location'];
+			$plant['phone'] = $queryRow['phone'];
+			$plant['street'] = $queryRow['street'];
+			$plant['zipCode'] = $queryRow['zip'];
 		}
-		
+		$returnArray['plant']=$plant;
 		return $returnArray;
 	}
 	

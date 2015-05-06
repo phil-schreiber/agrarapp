@@ -626,6 +626,7 @@ CREATE TABLE tx_agrarapp_offers (
 	image2 text,
 	bodytext3 text,
 	image3 text,
+	url text,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid)

@@ -2333,8 +2333,12 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 			$returnArray['offerId'] = $queryRow['offerId'];
 			$returnArray['validFromDate'] = $queryRow['validfromdate']*1000;
 			$returnArray['validToDate'] = $queryRow['validtodate']*1000;
-			$returnArray['plantHeaders'][$plantCounter]['plantId']=$queryRow['plantId'];
-			$returnArray['plantHeaders'][$plantCounter]['plantName']=$queryRow['plantName'];
+			if($queryRow['plantId']){
+				$returnArray['plantHeaders'][$plantCounter]['plantId']=$queryRow['plantId'];
+				$returnArray['plantHeaders'][$plantCounter]['plantName']=$queryRow['plantName'];
+			}else{
+				$returnArray['plantHeaders'][$plantCounter]=null;
+			}
 			$plantCounter++;
 		}
 		return $returnArray;

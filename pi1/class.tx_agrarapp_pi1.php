@@ -112,6 +112,7 @@ class tx_agrarapp_pi1 extends tslib_pibase {
 		    	1 => 'subscribeevents',
 		    	2 => 'subscribeweatherwarnings',
 			3 => 'subscribemarketalert',
+			4 => 'subscribeoffers',
 			11 => 'admindeviceregistration'
 		);
 		// Je nach Aufruf-Methode und abhängig davon, ob der abgerufene Service in der
@@ -332,6 +333,11 @@ class tx_agrarapp_pi1 extends tslib_pibase {
                                         echo json_encode($resultArray);
                                         die();
                                         break;
+				case 'subscribeoffers':
+					$resultArray = $this->storeSubscribeOffers();
+					echo json_encode($resultArray);
+					die();
+					break;
 				case 'admindeviceregistration':
 					$resultArray = $this->processRegistrationRequest();
 					echo json_encode($resultArray);
@@ -2212,8 +2218,8 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		if(!empty($zipcodeArray)){
 			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
 				'tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title',
-				'tx_agrarapp_offers LEFT JOIN tx_agrarapp_offercategory AS lvl1 ON tx_agrarapp_offers.offercategory=lvl1.uid LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers_locations_mm ON tx_agrarapp_offers_locations_mm.uid_local=tx_agrarapp_offers.uid LEFT JOIN tx_agrarapp_locations_zipcodes_mm ON tx_agrarapp_offers_locations_mm.uid_foreign= tx_agrarapp_locations_zipcodes_mm.uid_local',
-				'tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.validtodate > '.time().' AND tx_agrarapp_locations_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') GROUP BY tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory,  lvl1.uid,  lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validFromDate DESC'
+				'tx_agrarapp_offers LEFT JOIN tx_agrarapp_offercategory AS lvl1 ON tx_agrarapp_offers.offercategory=lvl1.uid LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid',
+				'tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.validtodate > '.time().' AND tx_agrarapp_offers_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') GROUP BY tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory,  lvl1.uid,  lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validFromDate DESC'
 			);
 			
 			$mainCounter=0;
@@ -2309,15 +2315,15 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		$id=$params['contentId'];
 		
 		$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
-				'tx_agrarapp_offercategory.uid AS categoryId, tx_agrarapp_offercategory.title AS categoryName, tx_agrarapp_offers.uid AS offerId,tx_agrarapp_offers.bodytext, tx_agrarapp_offers.bodytext2, tx_agrarapp_offers.bodytext3, tx_agrarapp_offers.image, tx_agrarapp_offers.image2, tx_agrarapp_offers.image3, tx_agrarapp_offers.title AS name, tx_agrarapp_offers.url AS link, tx_agrarapp_offers.soldout, tx_agrarapp_offers.validfromdate, tx_agrarapp_offers.validtodate, tx_agrarapp_offers.uid AS offerId, tx_agrarapp_locations.uid AS plantId, tx_agrarapp_locations.location AS plantName',
-				'tx_agrarapp_offers LEFT JOIN tx_agrarapp_offercategory ON tx_agrarapp_offercategory.uid=tx_agrarapp_offers.offercategory LEFT JOIN tx_agrarapp_offers_locations_mm ON tx_agrarapp_offers_locations_mm.uid_local=tx_agrarapp_offers.uid LEFT JOIN tx_agrarapp_locations ON tx_agrarapp_locations.uid=tx_agrarapp_offers_locations_mm.uid_foreign',
+				'tx_agrarapp_offercategory.uid AS categoryId, tx_agrarapp_offercategory.title AS categoryName, tx_agrarapp_offers.uid AS offerId,tx_agrarapp_offers.bodytext, tx_agrarapp_offers.bodytext2, tx_agrarapp_offers.bodytext3, tx_agrarapp_offers.image, tx_agrarapp_offers.image2, tx_agrarapp_offers.image3, tx_agrarapp_offers.title AS name, tx_agrarapp_offers.url AS link, tx_agrarapp_offers.soldout, tx_agrarapp_offers.validfromdate, tx_agrarapp_offers.validtodate, tx_agrarapp_offers.uid AS offerId, tx_agrarapp_offers.shopteaser AS shopteaser, tx_agrarapp_offers.shoplink AS shoplink, tx_agrarapp_offers.shopbtntext AS shopbtntext, tx_agrarapp_offers.shoppicture AS shoppicture,tx_agrarapp_offers.teaser, tx_agrarapp_plants.uid AS plantId,  tx_agrarapp_plants.location AS plantName',
+				'tx_agrarapp_offers LEFT JOIN tx_agrarapp_offercategory ON tx_agrarapp_offercategory.uid=tx_agrarapp_offers.offercategory LEFT JOIN tx_agrarapp_offers_plants_mm ON tx_agrarapp_offers_plants_mm.uid_local=tx_agrarapp_offers.uid LEFT JOIN tx_agrarapp_plants ON tx_agrarapp_plants.uid=tx_agrarapp_offers_plants_mm.uid_foreign',
 				'tx_agrarapp_offers.uid = '.intval($id).''
 				);
 		$plantCounter=0;
 		while($queryRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query) ){
 			$returnArray['categoryId']=$queryRow['categoryId'];
 			$returnArray['categoryName']=$queryRow['categoryName'];
-			$returnArray['link']=$queryRow['link'];
+			
 			$returnArray['messageTexts']=array(
 				0 => $queryRow['bodytext'],
 				1 => $queryRow['bodytext1'],
@@ -2327,6 +2333,12 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 				0 => $queryRow['image'],
 				1 => $queryRow['image1'],
 				2 => $queryRow['image2']
+			);
+			$returnArray['link']=array(
+				'picture' => $queryRow['shoppicture'],				
+				'url' => $queryRow['shoplink'],
+				'btntext' => $queryRow['shopbtntext'],
+				'teaser' => $queryRow['teaser'],
 			);
 			$returnArray['soldOut'] = $queryRow['soldout'];
 			$returnArray['name'] = $queryRow['name'];
@@ -2371,7 +2383,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		
 		$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 				'*',
-				'tx_agrarapp_locations',
+				'tx_agrarapp_plants',
 				'uid = '.$id.''
 				);
 		
@@ -2447,6 +2459,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		//Rückgabe
 		return $resultArray;
 	}
+	
 
 	/**
 	 * tx_agrarapp_pi1::storeSubscribeEvents()
@@ -2725,7 +2738,58 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		return $resultArray;
 	}
 
+	/**
+	 * tx_agrarapp_pi1::storeSubscribeOffers()
+	 *
+	 * Speicherung von Angebot-Abos über die App
+	 * Subscription Subtype ist als 5 für Angebote definiert
+	 *
+	 * @return array $resultArray Status-Array für App
+	 */
+	function storeSubscribeOffers(){
+		//Abfrage der Parameter aus dem Service
+		$getCriteria = json_decode(stripslashes($_GET['criteria']), 1);
+		$deviceId = $this->cleanString($getCriteria['deviceId']);
+		$params = $getCriteria['params'];	
 
+
+		//Löschung aller bisherigen News-Abos für die gewählte Device ID
+		$GLOBALS['TYPO3_DB']->exec_DELETEquery(
+		    'tx_agrarapp_subscriptions',
+		    'deviceid = \'' . $deviceId . '\' AND subtype = 5'
+		);
+
+		//Neuer Aufbau der Abos. Kombinationen aus PLZ und Kategorie
+		//Alle Abos werden in einer Tabelle gespeichert, daher "subtype=0" für News
+		foreach($params AS $key => $value) {
+			$zipCode = $this->cleanZipCode($value['zipCode']);
+
+			$insertArray = array(
+			    'tstamp' => time(),
+			    'crdate' => time(),
+			    'category' => intval($value['categoryId']),
+			    'zipcode' => $zipCode,
+			    'subtype' => 0,
+			    'deviceid' => $deviceId
+			    );
+
+			$insertQuery = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
+			    'tx_agrarapp_subscriptions',
+			    $insertArray
+			    );
+		}
+		//Vorbereitung Rückgabe-Array
+		$resultArray = array(
+		    'requestDate' => substr((microtime(true) * 10000), 0, 1),
+		    'errorCode' => $errorCode,
+		    'errorMessage' => $errorMessage
+		);
+		//Rückgabe
+		return $resultArray;
+	}
+	
+	
+	
 	/**
 	 * tx_agrarapp_pi1::processRegistrationRequest()
 	 *

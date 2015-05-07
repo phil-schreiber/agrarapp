@@ -546,6 +546,7 @@ CREATE TABLE tx_agrarapp_locations (
 	phone tinytext,
 	fax tinytext,
 	email tinytext,
+	internalid int(11) DEFAULT '0' NOT NULL,
 	zipcodes int(11) DEFAULT '0' NOT NULL,
 	baywaid int(11) DEFAULT '0' NOT NULL,
 	competence tinyint(4) NOT NULL DEFAULT '0',
@@ -627,6 +628,10 @@ CREATE TABLE tx_agrarapp_offers (
 	bodytext3 text,
 	image3 text,
 	url text,
+	shopteaser text,
+	shoplink text,
+	shopbtntext text,
+	shoppicture text,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid)
@@ -656,7 +661,7 @@ CREATE TABLE tx_agrarapp_offercategory (
 # Table structure for table 'tx_agrarapp_offers_locations_mm'
 #
 #
-CREATE TABLE tx_agrarapp_offers_locations_mm (
+CREATE TABLE tx_agrarapp_offers_plants_mm (
   uid_local int(11) DEFAULT '0' NOT NULL,
   uid_foreign int(11) DEFAULT '0' NOT NULL,
   tablenames varchar(30) DEFAULT '' NOT NULL,
@@ -664,3 +669,59 @@ CREATE TABLE tx_agrarapp_offers_locations_mm (
   KEY uid_local (uid_local),
   KEY uid_foreign (uid_foreign)
 );
+
+#
+# Table structure for table 'tx_agrarapp_offers_locations_mm'
+#
+#
+CREATE TABLE tx_agrarapp_offers_zipcodes_mm (
+  uid_local int(11) DEFAULT '0' NOT NULL,
+  uid_foreign int(11) DEFAULT '0' NOT NULL,
+  tablenames varchar(30) DEFAULT '' NOT NULL,
+  sorting int(11) DEFAULT '0' NOT NULL,
+  KEY uid_local (uid_local),
+  KEY uid_foreign (uid_foreign)
+);
+
+#
+# Table structure for table 'tx_agrarapp_plants_zipcodes_mm'
+#
+#
+CREATE TABLE tx_agrarapp_plants_zipcodes_mm (
+  uid_local int(11) DEFAULT '0' NOT NULL,
+  uid_foreign int(11) DEFAULT '0' NOT NULL,
+  tablenames varchar(30) DEFAULT '' NOT NULL,
+  sorting int(11) DEFAULT '0' NOT NULL,
+  KEY uid_local (uid_local),
+  KEY uid_foreign (uid_foreign)
+);
+
+
+#
+# Table structure for table 'tx_agrarapp_locations'
+#
+#
+CREATE TABLE tx_agrarapp_plants (
+	uid int(11) NOT NULL auto_increment,
+	pid int(11) DEFAULT '0' NOT NULL,
+	tstamp int(11) DEFAULT '0' NOT NULL,
+	crdate int(11) DEFAULT '0' NOT NULL,
+	cruser_id int(11) DEFAULT '0' NOT NULL,
+	deleted tinyint(4) DEFAULT '0' NOT NULL,
+	hidden tinyint(4) DEFAULT '0' NOT NULL,
+	location tinytext,
+	division tinytext,
+	street tinytext,
+	zip int(11) DEFAULT '0' NOT NULL,
+	city tinytext,
+	phone tinytext,
+	fax tinytext,
+	email tinytext,
+	zipcodes int(11) DEFAULT '0' NOT NULL,
+	internalid int(11) DEFAULT '0' NOT NULL,
+	baywaid int(11) DEFAULT '0' NOT NULL,
+	competence tinyint(4) NOT NULL DEFAULT '0',
+
+	PRIMARY KEY (uid),
+	KEY parent (pid)
+) ENGINE=InnoDB;

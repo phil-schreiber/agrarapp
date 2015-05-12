@@ -2249,6 +2249,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 					$offersSub[]=array(
 										'offerId'=>$queryRow['uid'],
 										'teaser'=>$queryRow['teaser'],
+										'title'=>$queryRow['title'],
 										'validFromDate'=>$queryRow['validfromdate']*1000,
 										'validToDate'=>$queryRow['validtodate']*1000
 									);
@@ -2273,6 +2274,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 					$offersMain[]=array(
 									'offerId'=>$queryRow['uid'],
 									'teaser'=>$queryRow['teaser'],
+									'title'=>$queryRow['title'],
 									'validFromDate'=>$queryRow['validfromdate']*1000,
 									'validToDate'=>$queryRow['validtodate']*1000
 								);			

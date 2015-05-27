@@ -2236,19 +2236,19 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 				if($queryRow['lvl2Id']){							
 					
 					
-					$offersSub[]=array(
+					
+					$returnArray[$queryRow['lvl2Id']]['offerHeaders'] = NULL;
+					$returnArray[$queryRow['lvl2Id']]['categoryName'] = $queryRow['lvl2Title'];
+					$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];																
+					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryName'] = $queryRow['lvl1Title'];
+					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryId'] = $queryRow['lvl1Id'];														
+					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['offerHeaders'][$queryRow['lvl1Id']][]=array(
 										'offerId'=>$queryRow['uid'],
 										'teaser'=>$queryRow['teaser'],
 										'title'=>$queryRow['title'],
 										'validFromDate'=>$queryRow['validfromdate']*1000,
 										'validToDate'=>$queryRow['validtodate']*1000
 									);
-					$returnArray[$queryRow['lvl2Id']]['offerHeaders'] = NULL;
-					$returnArray[$queryRow['lvl2Id']]['categoryName'] = $queryRow['lvl2Title'];
-					$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];																
-					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryName'] = $queryRow['lvl1Title'];
-					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryId'] = $queryRow['lvl1Id'];														
-					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['offerHeaders']=$offersSub;
 						
 							
 				}else{	

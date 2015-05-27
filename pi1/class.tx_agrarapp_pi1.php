@@ -2219,8 +2219,14 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
 				'tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title',
 				'tx_agrarapp_offers LEFT JOIN tx_agrarapp_offercategory AS lvl1 ON tx_agrarapp_offers.offercategory=lvl1.uid LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid',
-				'tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.validtodate > '.time().' AND tx_agrarapp_offers_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') GROUP BY tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory,  lvl1.uid,  lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validFromDate DESC'
+				'lvl1.uid IS NOT NULL AND tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <= '.time().' AND tx_agrarapp_offers.endtime >= '.time().' AND tx_agrarapp_offers_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') GROUP BY tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory,  lvl1.uid,  lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validFromDate DESC'
 			);
+			
+			/*
+			 * potential query to include all categories
+			 * SELECT tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title FROM tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers ON tx_agrarapp_offers.offercategory=lvl1.uid AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <= 1432715487 AND tx_agrarapp_offers.endtime > 1432715487) LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid WHERE tx_agrarapp_offers_zipcodes_mm.uid_foreign IN (96052,91567) OR tx_agrarapp_offers.uid IS NULL GROUP BY lvl1.uid,tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validFromDate DESC
+			 */
+			
 			
 			$mainCounter=0;
 			$subCounter=0;
@@ -2771,7 +2777,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 			    'crdate' => time(),
 			    'category' => intval($value['categoryId']),
 			    'zipcode' => $zipCode,
-			    'subtype' => 0,
+			    'subtype' => 5,
 			    'deviceid' => $deviceId
 			    );
 

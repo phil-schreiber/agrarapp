@@ -617,6 +617,8 @@ CREATE TABLE tx_agrarapp_offers (
 	offercategory int(11) DEFAULT '0' NOT NULL,
 	validfromdate int(11) DEFAULT '0' NOT NULL,	
 	validtodate int(11) DEFAULT '0' NOT NULL,		
+	starttime int(11) DEFAULT '0' NOT NULL,	
+	endtime int(11) DEFAULT '0' NOT NULL,		
 	teaser text,
 	title text,	
 	soldout tinyint(4) DEFAULT '0' NOT NULL,
@@ -683,18 +685,7 @@ CREATE TABLE tx_agrarapp_offers_zipcodes_mm (
   KEY uid_foreign (uid_foreign)
 );
 
-#
-# Table structure for table 'tx_agrarapp_plants_zipcodes_mm'
-#
-#
-CREATE TABLE tx_agrarapp_plants_zipcodes_mm (
-  uid_local int(11) DEFAULT '0' NOT NULL,
-  uid_foreign int(11) DEFAULT '0' NOT NULL,
-  tablenames varchar(30) DEFAULT '' NOT NULL,
-  sorting int(11) DEFAULT '0' NOT NULL,
-  KEY uid_local (uid_local),
-  KEY uid_foreign (uid_foreign)
-);
+
 
 
 #
@@ -709,6 +700,7 @@ CREATE TABLE tx_agrarapp_plants (
 	cruser_id int(11) DEFAULT '0' NOT NULL,
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
+	contactname tinytext,
 	location tinytext,
 	division tinytext,
 	street tinytext,

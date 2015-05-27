@@ -2254,16 +2254,16 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 				}else{	
 					
 					
-					$offersMain[]=array(
+								
+					$returnArray[$queryRow['lvl1Id']]['categoryName']=$queryRow['lvl1Title'];						
+					$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];
+					$returnArray[$queryRow['lvl1Id']]['offerHeaders'][]=array(
 									'offerId'=>$queryRow['uid'],
 									'teaser'=>$queryRow['teaser'],
 									'title'=>$queryRow['title'],
 									'validFromDate'=>$queryRow['validfromdate']*1000,
 									'validToDate'=>$queryRow['validtodate']*1000
-								);			
-					$returnArray[$queryRow['lvl1Id']]['categoryName']=$queryRow['lvl1Title'];						
-					$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];
-					$returnArray[$queryRow['lvl1Id']]['offerHeaders']=$offersMain;
+								);
 					$returnArray[$queryRow['lvl1Id']]['subCategories']=NULL;											
 				}
 								

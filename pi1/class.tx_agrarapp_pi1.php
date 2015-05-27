@@ -2267,7 +2267,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 					$returnArray[$queryRow['lvl1Id']]['subCategories']=NULL;											
 				}
 								
-			}
+			}			
 			$mainCounter=0;
 			foreach($returnArray as $mainCatId => $mainCatData){
 				if($mainCatData['offerHeaders']){

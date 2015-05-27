@@ -2222,16 +2222,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers ON tx_agrarapp_offers.offercategory=lvl1.uid AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <=  '.time().' AND tx_agrarapp_offers.endtime >  '.time().') LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid',
 				'tx_agrarapp_offers_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') OR tx_agrarapp_offers.uid IS NULL GROUP BY lvl1.uid,tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validFromDate DESC'
 			);
-			
-			
-			
-			
-			$mainCounter=0;
-			$subCounter=0;
-			$mainId=0;
-			$subId=0;
-			$offersMain=array();
-			$offersSub=array();
+						
 			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){															
 				if($queryRow['lvl2Id']){							
 					
@@ -2242,7 +2233,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 					$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];																
 					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryName'] = $queryRow['lvl1Title'];
 					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryId'] = $queryRow['lvl1Id'];														
-					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['offerHeaders'][$queryRow['lvl1Id']][]=array(
+					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['offerHeaders'][]=array(
 										'offerId'=>$queryRow['uid'],
 										'teaser'=>$queryRow['teaser'],
 										'title'=>$queryRow['title'],
@@ -2266,8 +2257,9 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 								);
 					$returnArray[$queryRow['lvl1Id']]['subCategories']=NULL;											
 				}
-								
+					
 			}			
+			
 			$mainCounter=0;
 			foreach($returnArray as $mainCatId => $mainCatData){
 				if($mainCatData['offerHeaders']){
@@ -2277,8 +2269,12 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 					$resultArray['offerCategories'][$mainCounter]['offerHeaders'] = NULL;
 					$resultArray['offerCategories'][$mainCounter]['categoryName'] = $mainCatData['categoryName'];
 					$resultArray['offerCategories'][$mainCounter]['categoryId'] = $mainCatData['categoryId'];
+					$subLevelCounter=0;
 					foreach($mainCatData['subCategories'] as $subCatId => $subCatData){
-						$resultArray['offerCategories'][$mainCounter]['subCategories'][]=$subCatData;
+						$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['categoryName']=$subCatData['categoryName'];
+						$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['categoryId']=$subCatData['categoryId'];												
+						$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['offerHeaders']=$subCatData['offerHeaders'];
+						$subLevelCounter++;
 					}
 				}
 				$mainCounter++;

@@ -2220,7 +2220,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
 				'tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title',
 				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers ON tx_agrarapp_offers.offercategory=lvl1.uid AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <=  '.time().' AND tx_agrarapp_offers.endtime >  '.time().') LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid',
-				'tx_agrarapp_offers_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') OR tx_agrarapp_offers.uid IS NULL GROUP BY lvl1.uid,tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validFromDate DESC'
+				'tx_agrarapp_offers_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') OR tx_agrarapp_offers.uid IS NULL GROUP BY lvl1.uid,tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validToDate ASC'
 			);
 						
 			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){															
@@ -2321,13 +2321,13 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 			
 			$returnArray['messageTexts']=array(
 				0 => $queryRow['bodytext'],
-				1 => $queryRow['bodytext1'],
-				2 => $queryRow['bodytext2']
+				1 => $queryRow['bodytext2'],
+				2 => $queryRow['bodytext3']
 			);
 			$returnArray['pictureRefs']=array(
 				0 => $queryRow['image'],
-				1 => $queryRow['image1'],
-				2 => $queryRow['image2']
+				1 => $queryRow['image2'],
+				2 => $queryRow['image3']
 			);
 			$returnArray['link']=array(
 				'picture' => $queryRow['shoppicture'],				

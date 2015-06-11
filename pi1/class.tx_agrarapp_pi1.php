@@ -281,7 +281,7 @@ class tx_agrarapp_pi1 extends tslib_pibase {
 					$resultArray = $this->findOfferHeaders();
 
 					if ($_GET['debug'] == 1) {
-							t3lib_div::debug($resultArray);
+							t3lib_utility_Debug::debug($resultArray);
 					}
 
 					echo json_encode($resultArray);
@@ -2217,53 +2217,69 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 			}
 		}
 		if(!empty($zipcodeArray)){
-			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			/*$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
 				'tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title',
 				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers ON tx_agrarapp_offers.offercategory=lvl1.uid AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <=  '.time().' AND tx_agrarapp_offers.endtime >  '.time().') LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid',
 				'tx_agrarapp_offers_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') OR tx_agrarapp_offers.uid IS NULL GROUP BY lvl1.uid,tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validToDate ASC'
+			);*/
+			
+			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title, tx_agrarapp_offers_zipcodes_mm.uid_foreign AS offerzip',
+				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers ON tx_agrarapp_offers.offercategory=lvl1.uid AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <=  '.time().' AND tx_agrarapp_offers.endtime >  '.time().') LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid',
+				'1=1 GROUP BY lvl1.uid,tx_agrarapp_offers.uid,offerzip ORDER BY lvl2.uid, lvl2.parentcategory, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validToDate ASC'
 			);
+			
+			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){	
+				
+				
+					if($queryRow['lvl2Id']){							
+
+
+
+						$returnArray[$queryRow['lvl2Id']]['offerHeaders'] = NULL;
+						$returnArray[$queryRow['lvl2Id']]['categoryName'] = $queryRow['lvl2Title'];
+						$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];																
+						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryName'] = $queryRow['lvl1Title'];
+						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryId'] = $queryRow['lvl1Id'];
 						
-			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){															
-				if($queryRow['lvl2Id']){							
-					
-					
-					
-					$returnArray[$queryRow['lvl2Id']]['offerHeaders'] = NULL;
-					$returnArray[$queryRow['lvl2Id']]['categoryName'] = $queryRow['lvl2Title'];
-					$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];																
-					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryName'] = $queryRow['lvl1Title'];
-					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryId'] = $queryRow['lvl1Id'];														
-					$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['offerHeaders'][]=array(
-										'offerId'=>$queryRow['uid'],
-										'teaser'=>$queryRow['teaser'],
-										'title'=>$queryRow['title'],
-										'validFromDate'=>$queryRow['validfromdate']*1000,
-										'validToDate'=>$queryRow['validtodate']*1000
-									);
-						
-							
-				}else{	
-					
-					
-								
-					$returnArray[$queryRow['lvl1Id']]['categoryName']=$queryRow['lvl1Title'];						
-					$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];
-					$returnArray[$queryRow['lvl1Id']]['offerHeaders'][]=array(
-									'offerId'=>$queryRow['uid'],
-									'teaser'=>$queryRow['teaser'],
-									'title'=>$queryRow['title'],
-									'validFromDate'=>$queryRow['validfromdate']*1000,
-									'validToDate'=>$queryRow['validtodate']*1000
-								);
-					$returnArray[$queryRow['lvl1Id']]['subCategories']=NULL;											
-				}
+						if(in_array($queryRow['offerzip'], $zipcodeArray)){
+							$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['offerHeaders'][$queryRow['uid']]=array(
+												'offerId'=>$queryRow['uid'],
+												'teaser'=>$queryRow['teaser'],
+												'title'=>$queryRow['title'],
+												'validFromDate'=>$queryRow['validfromdate']*1000,
+												'validToDate'=>$queryRow['validtodate']*1000
+											);
+						}
+
+					}else{	
+
+
+
+						$returnArray[$queryRow['lvl1Id']]['categoryName']=$queryRow['lvl1Title'];						
+						$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];
+						if(in_array($queryRow['offerzip'], $zipcodeArray)){
+							$returnArray[$queryRow['lvl1Id']]['offerHeaders'][$queryRow['uid']]=array(
+											'offerId'=>$queryRow['uid'],
+											'teaser'=>$queryRow['teaser'],
+											'title'=>$queryRow['title'],
+											'validFromDate'=>$queryRow['validfromdate']*1000,
+											'validToDate'=>$queryRow['validtodate']*1000
+										);
+						}
+						$returnArray[$queryRow['lvl1Id']]['subCategories']=NULL;											
+					}
 					
 			}			
 			
 			$mainCounter=0;
 			foreach($returnArray as $mainCatId => $mainCatData){
 				if($mainCatData['offerHeaders']){
-					$resultArray['offerCategories'][$mainCounter]=$mainCatData;
+					$resultArray['offerCategories'][$mainCounter]['categoryName']=$mainCatData['categoryName'];
+					$resultArray['offerCategories'][$mainCounter]['categoryId']=$mainCatData['categoryId'];
+					foreach($mainCatData['offerHeaders'] as $offer){
+						$resultArray['offerCategories'][$mainCounter]['offerHeaders'][]=$offer;
+					}
 				}else{
 					
 					$resultArray['offerCategories'][$mainCounter]['offerHeaders'] = NULL;
@@ -2273,7 +2289,10 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 					foreach($mainCatData['subCategories'] as $subCatId => $subCatData){
 						$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['categoryName']=$subCatData['categoryName'];
 						$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['categoryId']=$subCatData['categoryId'];												
-						$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['offerHeaders']=$subCatData['offerHeaders'];
+						foreach($subCatData['offerHeaders'] as $offer){
+								$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['offerHeaders'][]=$offer;
+						}
+						
 						$subLevelCounter++;
 					}
 				}
@@ -2310,7 +2329,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		$id=$params['contentId'];
 		
 		$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
-				'tx_agrarapp_offercategory.uid AS categoryId, tx_agrarapp_offercategory.title AS categoryName, tx_agrarapp_offers.uid AS offerId,tx_agrarapp_offers.bodytext, tx_agrarapp_offers.bodytext2, tx_agrarapp_offers.bodytext3, tx_agrarapp_offers.image, tx_agrarapp_offers.image2, tx_agrarapp_offers.image3, tx_agrarapp_offers.title AS name, tx_agrarapp_offers.url AS link, tx_agrarapp_offers.soldout, tx_agrarapp_offers.validfromdate, tx_agrarapp_offers.validtodate, tx_agrarapp_offers.uid AS offerId, tx_agrarapp_offers.shopteaser AS shopteaser, tx_agrarapp_offers.shoplink AS shoplink, tx_agrarapp_offers.shopbtntext AS shopbtntext, tx_agrarapp_offers.shoppicture AS shoppicture,tx_agrarapp_offers.teaser, tx_agrarapp_plants.uid AS plantId,  tx_agrarapp_plants.location AS plantName',
+				'tx_agrarapp_offercategory.uid AS categoryId, tx_agrarapp_offercategory.title AS categoryName, tx_agrarapp_offers.uid AS offerId,tx_agrarapp_offers.producttext as productText, tx_agrarapp_offers.bodytext, tx_agrarapp_offers.bodytext2, tx_agrarapp_offers.bodytext3, tx_agrarapp_offers.image, tx_agrarapp_offers.image2, tx_agrarapp_offers.image3, tx_agrarapp_offers.title AS name, tx_agrarapp_offers.url AS link, tx_agrarapp_offers.soldout, tx_agrarapp_offers.validfromdate, tx_agrarapp_offers.validtodate, tx_agrarapp_offers.uid AS offerId, tx_agrarapp_offers.shopteaser AS shopteaser, tx_agrarapp_offers.shoplink AS shoplink, tx_agrarapp_offers.shopbtntext AS shopbtntext, tx_agrarapp_offers.shoppicture AS shoppicture, tx_agrarapp_plants.uid AS plantId,  tx_agrarapp_plants.location AS plantName',
 				'tx_agrarapp_offers LEFT JOIN tx_agrarapp_offercategory ON tx_agrarapp_offercategory.uid=tx_agrarapp_offers.offercategory LEFT JOIN tx_agrarapp_offers_plants_mm ON tx_agrarapp_offers_plants_mm.uid_local=tx_agrarapp_offers.uid LEFT JOIN tx_agrarapp_plants ON tx_agrarapp_plants.uid=tx_agrarapp_offers_plants_mm.uid_foreign',
 				'tx_agrarapp_offers.uid = '.intval($id).''
 				);
@@ -2333,13 +2352,14 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 				'picture' => $queryRow['shoppicture'],				
 				'url' => $queryRow['shoplink'],
 				'btntext' => $queryRow['shopbtntext'],
-				'teaser' => $queryRow['teaser'],
+				'teaser' => $queryRow['shopteaser'],
 			);
 			$returnArray['soldOut'] = $queryRow['soldout'];
 			$returnArray['name'] = $queryRow['name'];
 			$returnArray['offerId'] = $queryRow['offerId'];
 			$returnArray['validFromDate'] = $queryRow['validfromdate']*1000;
 			$returnArray['validToDate'] = $queryRow['validtodate']*1000;
+			$returnArray['productText'] = $queryRow['productText'];
 			if($queryRow['plantId']){
 				$returnArray['plantHeaders'][$plantCounter]['plantId']=$queryRow['plantId'];
 				$returnArray['plantHeaders'][$plantCounter]['plantName']=$queryRow['plantName'];

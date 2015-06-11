@@ -634,6 +634,7 @@ CREATE TABLE tx_agrarapp_offers (
 	shoplink text,
 	shopbtntext text,
 	shoppicture text,
+	producttext text,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid)

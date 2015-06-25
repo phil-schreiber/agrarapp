@@ -655,6 +655,7 @@ CREATE TABLE tx_agrarapp_offercategory (
     parentcategory int(11) DEFAULT '0' NOT NULL,    
     title text,
 	originalid int(11) DEFAULT '0' NOT NULL,
+	offersorting int(11) DEFAULT '0' NOT NULL,
 
     PRIMARY KEY (uid),
     KEY parent (pid)
@@ -700,7 +701,8 @@ CREATE TABLE tx_agrarapp_plants (
 	crdate int(11) DEFAULT '0' NOT NULL,
 	cruser_id int(11) DEFAULT '0' NOT NULL,
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
-	hidden tinyint(4) DEFAULT '0' NOT NULL,
+	hidden tinyint(4) DEFAULT '0' NOT NULL,	
+	plantname tinytext,
 	contactname tinytext,
 	location tinytext,
 	division tinytext,
@@ -714,6 +716,7 @@ CREATE TABLE tx_agrarapp_plants (
 	internalid int(11) DEFAULT '0' NOT NULL,
 	baywaid int(11) DEFAULT '0' NOT NULL,
 	competence tinyint(4) NOT NULL DEFAULT '0',
+
 
 	PRIMARY KEY (uid),
 	KEY parent (pid)

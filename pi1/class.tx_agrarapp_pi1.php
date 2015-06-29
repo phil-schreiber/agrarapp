@@ -2236,95 +2236,75 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		}
 		$tree=array();
 		if(!empty($zipcodeArray)){
-			/*$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
-				'tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title',
-				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers ON tx_agrarapp_offers.offercategory=lvl1.uid AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <=  '.time().' AND tx_agrarapp_offers.endtime >  '.time().') LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid',
-				'tx_agrarapp_offers_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') OR tx_agrarapp_offers.uid IS NULL GROUP BY lvl1.uid,tx_agrarapp_offers.uid ORDER BY lvl2.uid, lvl2.parentcategory, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validToDate ASC'
-			);*/
-			
-			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
-				'tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl1.offersorting AS lvl1sort,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title,lvl2.offersorting AS lvl2sort, tx_agrarapp_offers_zipcodes_mm.uid_foreign AS offerzip',
-				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers ON tx_agrarapp_offers.offercategory=lvl1.uid AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <=  '.time().' AND tx_agrarapp_offers.endtime >  '.time().') LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid',
-				'1=1 GROUP BY lvl1.uid,tx_agrarapp_offers.uid,offerzip ORDER BY lvl2.offersorting, lvl2.uid, lvl2.parentcategory, lvl1.offersorting, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validToDate ASC'
+			$treeQuery=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl1.offersorting AS lvl1sorting, lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title,lvl2.offersorting AS lvl2sorting',
+				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid',
+				'1=1 ORDER BY lvl2.offersorting ASC, lvl2.uid, lvl2.parentcategory, lvl1.offersorting ASC, lvl1.uid, lvl1.title ASC, lvl2.title ASC'
 			);
 			
-			echo('SELECT tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl1.offersorting AS lvl1sort,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title,lvl2.offersorting AS lvl2sort, tx_agrarapp_offers_zipcodes_mm.uid_foreign AS offerzip'.
-				' FROM tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers ON tx_agrarapp_offers.offercategory=lvl1.uid AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <=  '.time().' AND tx_agrarapp_offers.endtime >  '.time().') LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid'.
-				' WHERE 1=1 GROUP BY lvl1.uid,tx_agrarapp_offers.uid,offerzip ORDER BY lvl2.offersorting, lvl2.uid, lvl2.parentcategory, lvl1.offersorting, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validToDate ASC');
+			while($treeQueryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($treeQuery)){
+				if($treeQueryRow['lvl2Id']){													
+						$tree[$treeQueryRow['lvl2Id']]['categoryName'] = $treeQueryRow['lvl2Title'];
+						$tree[$treeQueryRow['lvl2Id']]['categoryId'] = $treeQueryRow['lvl2Id'];
+						$tree[$treeQueryRow['lvl2Id']]['categoryOrder'] = $treeQueryRow['lvl2sorting'];
+						$tree[$treeQueryRow['lvl2Id']]['subCategories'][$treeQueryRow['lvl1Id']]['categoryName'] = $treeQueryRow['lvl1Title'];
+						$tree[$treeQueryRow['lvl2Id']]['subCategories'][$treeQueryRow['lvl1Id']]['categoryId'] = $treeQueryRow['lvl1Id'];																		
+						$tree[$treeQueryRow['lvl2Id']]['subCategories'][$treeQueryRow['lvl1Id']]['categoryOrder'] = $treeQueryRow['lvl1sorting'];																		
+					}else{	
+						$tree[$treeQueryRow['lvl1Id']]['categoryName']=$treeQueryRow['lvl1Title'];						
+						$tree[$treeQueryRow['lvl1Id']]['categoryId']=$treeQueryRow['lvl1Id'];						
+						$tree[$treeQueryRow['lvl1Id']]['categoryOrder']=$treeQueryRow['lvl1sorting'];						
+					}
+			}
 			
-			$timeend=  microtime(true);
+			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'tx_agrarapp_offers.*, tx_agrarapp_offers_zipcodes_mm.uid_foreign AS offerzip',
+				'tx_agrarapp_offers  LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid',
+				'tx_agrarapp_offers_zipcodes_mm.uid_foreign IN ('.implode(',',$zipcodeArray).') AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <=  '.time().' AND tx_agrarapp_offers.endtime >  '.time().') GROUP BY tx_agrarapp_offers.uid ORDER BY tx_agrarapp_offers.validtodate ASC'
+			);
+			
+			
+			
+			
 			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){	
-				
-				
-					if($queryRow['lvl2Id']){							
-
-						$returnArray[$queryRow['lvl2Id']]['offerHeaders'] = NULL;
-						$returnArray[$queryRow['lvl2Id']]['categoryName'] = $queryRow['lvl2Title'];
-						$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];
-						$returnArray[$queryRow['lvl2Id']]['categoryOrder'] = $queryRow['lvl2sort'];
-						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryName'] = $queryRow['lvl1Title'];
-						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryId'] = $queryRow['lvl1Id'];						
-						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryOrder'] = $queryRow['lvl1sort'];						
-						
-						if(in_array($queryRow['offerzip'], $zipcodeArray)){
-							$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['offerHeaders'][$queryRow['uid']]=array(
+				$returnArray[$queryRow['offercategory']]['offerHeaders'][]=array(
 												'offerId'=>$queryRow['uid'],
 												'teaser'=>$queryRow['teaser'],
 												'title'=>$queryRow['title'],
 												'validFromDate'=>$queryRow['validfromdate']*1000,
 												'validToDate'=>$queryRow['validtodate']*1000
 											);
-						}						
-
-					}else{	
-
-						$returnArray[$queryRow['lvl1Id']]['categoryName']=$queryRow['lvl1Title'];						
-						$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];
-						$returnArray[$queryRow['lvl1Id']]['categoryOrder'] = $queryRow['lvl1sort'];
-						if(in_array($queryRow['offerzip'], $zipcodeArray)){
-							$returnArray[$queryRow['lvl1Id']]['offerHeaders'][$queryRow['uid']]=array(
-											'offerId'=>$queryRow['uid'],
-											'teaser'=>$queryRow['teaser'],
-											'title'=>$queryRow['title'],
-											'validFromDate'=>$queryRow['validfromdate']*1000,
-											'validToDate'=>$queryRow['validtodate']*1000
-										);
-						}
-						$returnArray[$queryRow['lvl1Id']]['subCategories']=NULL;											
-					}
 					
 			}			
 			
 			$mainCounter=0;
-			foreach($returnArray as $mainCatId => $mainCatData){
-				if($mainCatData['offerHeaders']){
+			foreach($tree as $mainCatId => $mainCatData){
+				if(!is_array($mainCatData['subCategories'] )){
 					$resultArray['offerCategories'][$mainCounter]['categoryName']=$mainCatData['categoryName'];
 					$resultArray['offerCategories'][$mainCounter]['categoryId']=$mainCatData['categoryId'];
 					$resultArray['offerCategories'][$mainCounter]['categoryOrder']=$mainCatData['categoryOrder'];
-					$tree[$mainCounter]['categoryName']=$mainCatData['categoryName'];
-					$tree[$mainCounter]['categoryId']=$mainCatData['categoryId'];
-					foreach($mainCatData['offerHeaders'] as $offer){
-						$resultArray['offerCategories'][$mainCounter]['offerHeaders'][]=$offer;
+					if(is_array($returnArray[$mainCatId])){
+						$resultArray['offerCategories'][$mainCounter]['offerHeaders']=$returnArray[$mainCatId]['offerHeaders'];																
+					}else{
+						$resultArray['offerCategories'][$mainCounter]['offerHeaders'] = NULL;
 					}
-				}else{
-					
+				}else{					
 					$resultArray['offerCategories'][$mainCounter]['offerHeaders'] = NULL;
 					$resultArray['offerCategories'][$mainCounter]['categoryName'] = $mainCatData['categoryName'];
 					$resultArray['offerCategories'][$mainCounter]['categoryId'] = $mainCatData['categoryId'];
 					$resultArray['offerCategories'][$mainCounter]['categoryOrder'] = $mainCatData['categoryOrder'];
-					$tree[$mainCounter]['categoryName']=$mainCatData['categoryName'];
-					$tree[$mainCounter]['categoryId']=$mainCatData['categoryId'];
+					
 					$subLevelCounter=0;
 					foreach($mainCatData['subCategories'] as $subCatId => $subCatData){
-						$tree[$mainCounter]['subCategories'][$subLevelCounter]['categoryName']=$subCatData['categoryName'];
-						$tree[$mainCounter]['subCategories'][$subLevelCounter]['categoryId']=$subCatData['categoryId'];
+						
 						$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['categoryName']=$subCatData['categoryName'];
 						$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['categoryId']=$subCatData['categoryId'];
 						$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['categoryOrder']=$subCatData['categoryOrder'];
-						if($subCatData['offerHeaders']){
-						foreach($subCatData['offerHeaders'] as $offer){
-								$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['offerHeaders'][]=$offer;
-						}
+						if(is_array($returnArray[$subCatId])){						
+							$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['offerHeaders']=$returnArray[$subCatId]['offerHeaders'];
+						
+						}else{
+							$resultArray['offerCategories'][$mainCounter]['subCategories'][$subLevelCounter]['offerHeaders'] = NULL;
 						}
 						$subLevelCounter++;
 					}
@@ -2334,93 +2314,13 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 			
 		}
 		
-		echo($timeend-$timestart);
+		$timeend=  microtime(true);
+		
 		
 		return $resultArray;
 	}
 	
-	/**
-	 * tx_agrarapp_pi1::getOfferCategoriesTree()
-	 *
-	 * Bereitstellung der Offer-Teaser für die App
-	 *	
-	 * @param void
-	 * @return array $resultArray Array mit den Offer-Teasern
-	 */	
-	function getOfferCategoriesTree(){		
-		$returnArray=array();	
-		$tree=array();
-			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
-				'lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title',
-				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid',
-				'1=1 GROUP BY lvl1.uid ORDER BY lvl2.offersorting ASC, lvl2.uid, lvl2.parentcategory, lvl1.offersorting ASC, lvl1.uid, lvl1.title ASC, lvl2.title ASC'
-			);
-			
-			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){									
-					if($queryRow['lvl2Id']){													
-						$returnArray[$queryRow['lvl2Id']]['categoryName'] = $queryRow['lvl2Title'];
-						$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];																
-						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryName'] = $queryRow['lvl1Title'];
-						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryId'] = $queryRow['lvl1Id'];																		
-					}else{	
-						$returnArray[$queryRow['lvl1Id']]['categoryName']=$queryRow['lvl1Title'];						
-						$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];						
-					}
-					
-			}
-			
-			$mainCounter=0;
-			foreach($returnArray as $mainCatId => $mainCatData){
-				if($mainCatData['offerHeaders']){					
-					$tree[$mainCounter]['categoryName']=$mainCatData['categoryName'];
-					$tree[$mainCounter]['categoryId']=$mainCatData['categoryId'];					
-				}else{
-										
-					$tree[$mainCounter]['categoryName']=$mainCatData['categoryName'];
-					$tree[$mainCounter]['categoryId']=$mainCatData['categoryId'];
-					$subLevelCounter=0;
-					foreach($mainCatData['subCategories'] as $subCatId => $subCatData){
-						$tree[$mainCounter]['subCategories'][$subLevelCounter]['categoryName']=$subCatData['categoryName'];
-						$tree[$mainCounter]['subCategories'][$subLevelCounter]['categoryId']=$subCatData['categoryId'];
-					
-						$subLevelCounter++;
-					}
-				}
-				$mainCounter++;
-			}
-			
-		
-		return $tree;
-	}
 	
-	function saveOffersOrder(){
-		$mainCat=explode(',',$_POST['main']);
-		foreach($mainCat as $key => $val){
-			$updateArray=array(
-				'offersorting' => $key
-			);
-			if(intval($val)){
-				$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-						'tx_agrarapp_offercategory',
-						'uid='.intval($val),
-						$updateArray
-					);
-			}
-		}
-		$subCat=explode(',',$_POST['sub']);
-		foreach($subCat as $key => $val){
-			$updateArray=array(
-				'offersorting' => $key
-			);
-			if(intval($val)){
-				$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-						'tx_agrarapp_offercategory',
-						'uid='.intval($val),
-						$updateArray
-					);
-			}
-		}
-	}
 	
 	
 	/**
@@ -2540,6 +2440,91 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		$returnArray['plant']=$plant;
 		return $returnArray;
 	}
+	
+	
+	/**
+	 * tx_agrarapp_pi1::getOfferCategoriesTree()
+	 *
+	 * Bereitstellung der Offer-Teaser für die App
+	 *	
+	 * @param void
+	 * @return array $resultArray Array mit den Offer-Teasern
+	 */	
+	function getOfferCategoriesTree(){		
+		$returnArray=array();	
+		$tree=array();
+			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title',
+				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid',
+				'1=1 GROUP BY lvl1.uid ORDER BY lvl2.offersorting ASC, lvl2.uid, lvl2.parentcategory, lvl1.offersorting ASC, lvl1.uid, lvl1.title ASC, lvl2.title ASC'
+			);
+			
+			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){									
+					if($queryRow['lvl2Id']){													
+						$returnArray[$queryRow['lvl2Id']]['categoryName'] = $queryRow['lvl2Title'];
+						$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];																
+						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryName'] = $queryRow['lvl1Title'];
+						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryId'] = $queryRow['lvl1Id'];																		
+					}else{	
+						$returnArray[$queryRow['lvl1Id']]['categoryName']=$queryRow['lvl1Title'];						
+						$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];						
+					}
+					
+			}
+			
+			$mainCounter=0;
+			foreach($returnArray as $mainCatId => $mainCatData){
+				if($mainCatData['offerHeaders']){					
+					$tree[$mainCounter]['categoryName']=$mainCatData['categoryName'];
+					$tree[$mainCounter]['categoryId']=$mainCatData['categoryId'];					
+				}else{
+										
+					$tree[$mainCounter]['categoryName']=$mainCatData['categoryName'];
+					$tree[$mainCounter]['categoryId']=$mainCatData['categoryId'];
+					$subLevelCounter=0;
+					foreach($mainCatData['subCategories'] as $subCatId => $subCatData){
+						$tree[$mainCounter]['subCategories'][$subLevelCounter]['categoryName']=$subCatData['categoryName'];
+						$tree[$mainCounter]['subCategories'][$subLevelCounter]['categoryId']=$subCatData['categoryId'];
+					
+						$subLevelCounter++;
+					}
+				}
+				$mainCounter++;
+			}
+			
+		
+		return $tree;
+	}
+	
+	function saveOffersOrder(){
+		$mainCat=explode(',',$_POST['main']);
+		foreach($mainCat as $key => $val){
+			$updateArray=array(
+				'offersorting' => $key
+			);
+			if(intval($val)){
+				$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+						'tx_agrarapp_offercategory',
+						'uid='.intval($val),
+						$updateArray
+					);
+			}
+		}
+		$subCat=explode(',',$_POST['sub']);
+		foreach($subCat as $key => $val){
+			$updateArray=array(
+				'offersorting' => $key
+			);
+			if(intval($val)){
+				$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+						'tx_agrarapp_offercategory',
+						'uid='.intval($val),
+						$updateArray
+					);
+			}
+		}
+	}
+	
 	
 	/**
 	 * tx_agrarapp_pi1::storeSubscribeNews()

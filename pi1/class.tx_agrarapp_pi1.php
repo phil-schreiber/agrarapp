@@ -2208,6 +2208,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 	 * @return array $resultArray Array mit den Offer-Teasern
 	 */	
 	function findofferheaders(){
+		$timestart=microtime(true);
 		$resultArray=array(
 			'requestDate' => substr((microtime(true) * 10000), 0, -1),
 		    'errorCode' => '',
@@ -2247,6 +2248,11 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 				'1=1 GROUP BY lvl1.uid,tx_agrarapp_offers.uid,offerzip ORDER BY lvl2.offersorting, lvl2.uid, lvl2.parentcategory, lvl1.offersorting, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validToDate ASC'
 			);
 			
+			echo('SELECT tx_agrarapp_offers.*,lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl1.offersorting AS lvl1sort,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title,lvl2.offersorting AS lvl2sort, tx_agrarapp_offers_zipcodes_mm.uid_foreign AS offerzip'.
+				' FROM tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid LEFT JOIN tx_agrarapp_offers ON tx_agrarapp_offers.offercategory=lvl1.uid AND (tx_agrarapp_offers.deleted=0 AND tx_agrarapp_offers.hidden=0 AND tx_agrarapp_offers.starttime <=  '.time().' AND tx_agrarapp_offers.endtime >  '.time().') LEFT JOIN tx_agrarapp_offers_zipcodes_mm ON tx_agrarapp_offers_zipcodes_mm.uid_local=tx_agrarapp_offers.uid'.
+				' WHERE 1=1 GROUP BY lvl1.uid,tx_agrarapp_offers.uid,offerzip ORDER BY lvl2.offersorting, lvl2.uid, lvl2.parentcategory, lvl1.offersorting, lvl1.uid, lvl1.title ASC, lvl2.title ASC, tx_agrarapp_offers.validToDate ASC');
+			
+			$timeend=  microtime(true);
 			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){	
 				
 				
@@ -2271,8 +2277,6 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 						}						
 
 					}else{	
-
-
 
 						$returnArray[$queryRow['lvl1Id']]['categoryName']=$queryRow['lvl1Title'];						
 						$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];
@@ -2327,8 +2331,10 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 				}
 				$mainCounter++;
 			}
+			
 		}
 		
+		echo($timeend-$timestart);
 		
 		return $resultArray;
 	}

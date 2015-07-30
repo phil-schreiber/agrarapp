@@ -710,6 +710,7 @@ CREATE TABLE tx_agrarapp_plants (
 	zip int(11) DEFAULT '0' NOT NULL,
 	city tinytext,
 	phone tinytext,
+	mobile tinytext,
 	fax tinytext,
 	email tinytext,
 	zipcodes int(11) DEFAULT '0' NOT NULL,

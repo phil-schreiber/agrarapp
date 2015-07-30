@@ -2454,7 +2454,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		$returnArray=array();	
 		$tree=array();
 			$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
-				'lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title',
+				'lvl1.uid AS lvl1Id, lvl1.title AS lvl1Title, lvl1.originalid AS lvl1OrigId,lvl2.uid AS lvl2Id,lvl2.title AS lvl2Title, lvl2.originalid AS lvl2OrigId',
 				'tx_agrarapp_offercategory AS lvl1 LEFT JOIN tx_agrarapp_offercategory AS lvl2 ON lvl1.parentcategory=lvl2.uid',
 				'1=1 GROUP BY lvl1.uid ORDER BY lvl2.offersorting ASC, lvl2.uid, lvl2.parentcategory, lvl1.offersorting ASC, lvl1.uid, lvl1.title ASC, lvl2.title ASC'
 			);
@@ -2462,12 +2462,15 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 			while($queryRow=$GLOBALS['TYPO3_DB']->sql_fetch_assoc($query)){									
 					if($queryRow['lvl2Id']){													
 						$returnArray[$queryRow['lvl2Id']]['categoryName'] = $queryRow['lvl2Title'];
-						$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];																
+						$returnArray[$queryRow['lvl2Id']]['categoryId'] = $queryRow['lvl2Id'];	
+						$returnArray[$queryRow['lvl2Id']]['categoryOrigId'] = $queryRow['lvl2OrigId'];	
 						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryName'] = $queryRow['lvl1Title'];
 						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryId'] = $queryRow['lvl1Id'];																		
+						$returnArray[$queryRow['lvl2Id']]['subCategories'][$queryRow['lvl1Id']]['categoryOrigId'] = $queryRow['lvl1OrigId'];																		
 					}else{	
 						$returnArray[$queryRow['lvl1Id']]['categoryName']=$queryRow['lvl1Title'];						
-						$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];						
+						$returnArray[$queryRow['lvl1Id']]['categoryId']=$queryRow['lvl1Id'];
+						$returnArray[$queryRow['lvl1Id']]['categoryOrigId']=$queryRow['lvl1OrigId'];
 					}
 					
 			}
@@ -2476,15 +2479,18 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 			foreach($returnArray as $mainCatId => $mainCatData){
 				if($mainCatData['offerHeaders']){					
 					$tree[$mainCounter]['categoryName']=$mainCatData['categoryName'];
-					$tree[$mainCounter]['categoryId']=$mainCatData['categoryId'];					
+					$tree[$mainCounter]['categoryId']=$mainCatData['categoryId'];
+					$tree[$mainCounter]['categoryId']=$mainCatData['categoryOrigId'];
 				}else{
 										
 					$tree[$mainCounter]['categoryName']=$mainCatData['categoryName'];
 					$tree[$mainCounter]['categoryId']=$mainCatData['categoryId'];
+					$tree[$mainCounter]['categoryOrigId']=$mainCatData['categoryOrigId'];
 					$subLevelCounter=0;
 					foreach($mainCatData['subCategories'] as $subCatId => $subCatData){
 						$tree[$mainCounter]['subCategories'][$subLevelCounter]['categoryName']=$subCatData['categoryName'];
 						$tree[$mainCounter]['subCategories'][$subLevelCounter]['categoryId']=$subCatData['categoryId'];
+						$tree[$mainCounter]['subCategories'][$subLevelCounter]['categoryOrigId']=$subCatData['categoryOrigId'];
 					
 						$subLevelCounter++;
 					}

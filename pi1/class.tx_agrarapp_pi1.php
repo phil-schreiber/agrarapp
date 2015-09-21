@@ -2349,7 +2349,7 @@ Fragen zum Inhalt beantwortet Ihr persönlicher Ansprechpartner.
 		$query=$GLOBALS['TYPO3_DB']->exec_SELECTquery(
 				'tx_agrarapp_offercategory.uid AS categoryId, tx_agrarapp_offercategory.title AS categoryName, tx_agrarapp_offers.uid AS offerId,tx_agrarapp_offers.producttext as productText, tx_agrarapp_offers.bodytext, tx_agrarapp_offers.bodytext2, tx_agrarapp_offers.bodytext3, tx_agrarapp_offers.image, tx_agrarapp_offers.image2, tx_agrarapp_offers.image3, tx_agrarapp_offers.title AS name, tx_agrarapp_offers.url AS link, tx_agrarapp_offers.soldout, tx_agrarapp_offers.validfromdate, tx_agrarapp_offers.validtodate, tx_agrarapp_offers.uid AS offerId, tx_agrarapp_offers.shopteaser AS shopteaser, tx_agrarapp_offers.shoplink AS shoplink, tx_agrarapp_offers.shopbtntext AS shopbtntext, tx_agrarapp_offers.shoppicture AS shoppicture, tx_agrarapp_plants.uid AS plantId,  tx_agrarapp_plants.plantname AS plantName',
 				'tx_agrarapp_offers LEFT JOIN tx_agrarapp_offercategory ON tx_agrarapp_offercategory.uid=tx_agrarapp_offers.offercategory LEFT JOIN tx_agrarapp_offers_plants_mm ON tx_agrarapp_offers_plants_mm.uid_local=tx_agrarapp_offers.uid LEFT JOIN tx_agrarapp_plants ON tx_agrarapp_plants.uid=tx_agrarapp_offers_plants_mm.uid_foreign',
-				'tx_agrarapp_offers.uid = '.intval($id).''
+				'tx_agrarapp_offers.uid = '.intval($id).' ORDER BY plantName ASC'
 				);
 		$plantCounter=0;
 		while($queryRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query) ){
